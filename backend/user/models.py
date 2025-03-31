@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin ,BaseUserManager
-
+from django.contrib.auth.hashers import make_password
 
 
 
@@ -42,11 +42,11 @@ class user(AbstractBaseUser,PermissionsMixin):
     is_superuser = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
     phone_number = models.BigIntegerField(null=False,default=0,unique=True)
-    password = models.CharField(null=False,max_length=10)
+
     branch = models.ForeignKey(branch,on_delete=models.SET_NULL,null=True)
     objects = accountmanagerBase()
     USERNAME_FIELD = "phone_number"
-    REQUIRED_FIELDS = ['password']  
+    REQUIRED_FIELDS = ['password','user_type']  
     
 
     def __str__(self):
