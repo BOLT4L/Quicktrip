@@ -1,2 +1,2 @@
 # Quicktrip
-QuickTrip : Seamless Intercity transaportation system
+QuickTrip : Seamless Intercity transportation system
