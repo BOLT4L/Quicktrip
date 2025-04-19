@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders', 
     'api',
+  
 ]
 
 MIDDLEWARE = [
@@ -118,3 +119,6 @@ AUTH_USER_MODEL ='user.user'
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
