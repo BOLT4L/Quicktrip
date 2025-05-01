@@ -66,25 +66,26 @@ class addtraveller(serializers.ModelSerializer):
         fields = ['id','user_type','phone_number','date_joined','branch','nid']
 
 class branchSerializer(serializers.ModelSerializer):
-    location = locationSerializer(read_only = True)
+    location = locationSerializer(required = False)
+    
     class Meta :
         model = branch
         fields = ['id','location','address','type','name','status']
     
     def create(self, validated_data):
-        # Extract location data
         location_data = validated_data.pop('location')
-        
-        # Create Location instance first
-        location = locations.objects.create(**location_data)
-        
-        # Create Branch with the created Location
-        branch_instance = branch.objects.create(
-            location=location,
-            **validated_data
+        branchs = branch.objects.create(
+              **validated_data
         )
         
-        return branch_instance
+        if location_data:
+            loc =locations.objects.create(**location_data)
+            branchs.location = loc
+            branchs.save()
+      
+        
+        
+        return branchs
     
 
 class credSerializer(serializers.ModelSerializer):
@@ -107,15 +108,16 @@ class credSerializer(serializers.ModelSerializer):
        
 class userSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
-    location = locationSerializer(read_only=True, required=False)
+    location = locationSerializer( required=False)
     credentials = credSerializer(required=False)
-    
+    branch = branchSerializer(required = False)
     class Meta:
         model = User
-        fields = ['id', 'user_type', 'nid', 'location', 'phone_number','date_joined', 'branch', 'employee', 'credentials']
+        fields = ['id', 'user_type','is_active', 'nid', 'location', 'phone_number','date_joined', 'branch', 'employee', 'credentials']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
             'branch': {'required': False},
+            'location': {'required': False},
             'employee': {'required': False},
             'credentials': {'required': False}
         }
@@ -124,8 +126,7 @@ class userSerializer(serializers.ModelSerializer):
         employee_data = validated_data.pop('employee', None)
         credentials_data = validated_data.pop('credentials', None)
         password = validated_data.pop('password', None)
-       
-        
+              
         # Create user
         user = User.objects.create(
            
@@ -149,6 +150,21 @@ class userSerializer(serializers.ModelSerializer):
         
         return user
 
+class ExitSlipSerializer(serializers.ModelSerializer):
+    vehicle_plate = serializers.CharField(source='vehicle.plate_number')
+    vehicle_model = serializers.CharField(source='vehicle.Model')
+    driver_name = serializers.CharField(source='driver.employee.Fname')
+    from_location = serializers.CharField(source='from_location.name')
+    to_location = serializers.CharField(source='to_location.name')
+
+    class Meta:
+        model = ExitSlip
+        fields = '__all__'
+
+class VehicleExitSlipSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = vehicle
+        fields = ['plate_number', 'Model', 'color', 'sit_number']
 class UserSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
     branch = branchSerializer(required=False)
@@ -203,6 +219,18 @@ class MessageSerializer(serializers.ModelSerializer):
             'name': f"{obj.receiver.employee.Fname} {obj.receiver.employee.Lname}",
             
         }
+class MessageaddSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = message
+        fields = ['id', 'sender', 'receiver', 'content', 'timestamp', 'read']
+
+class MessageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = message
+        fields = ['id', 'sender', 'receiver', 'content', 'timestamp', 'read']
+        read_only_fields = ['id', 'sender', 'receiver', 'content', 'timestamp']
+    
+    
   
 
 class routeSerializer(serializers.ModelSerializer):
@@ -210,8 +238,11 @@ class routeSerializer(serializers.ModelSerializer):
     last_destination = branchSerializer()
     class Meta:
         model = route
-        fields = ['id','name','first_destination','last_destination','route_prize']
-
+        fields = ['id','name','first_destination','last_destination','route_prize','distance']
+class routeSerializers(serializers.ModelSerializer):
+     class Meta:
+        model = route
+        fields = ['id','name','first_destination','last_destination','route_prize','distance']
 class vehicleSerializer(serializers.ModelSerializer):
     
     class Meta:
@@ -240,22 +271,44 @@ class TokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 class ticketSerializer(serializers.ModelSerializer):
     route = routeSerializer()
+    level = levelSerializer()
+    user = userSerializer()
     class Meta :
         model = ticket
         fields =  ['id','bought_date','route','level','Quantity','takeoff_time','takeoff_date','total_prize','user',]
+class buyticketSerializer(serializers.ModelSerializer):
+    
+    class Meta :
+        model = ticket
+        fields =  ['id','bought_date','route','level','Quantity','takeoff_time','takeoff_date','total_prize','user',]
+
+   
 class paymentSerializer(serializers.ModelSerializer):
     user = userSerializer()
-    vehicle = vehicleSerializer()
+    vehicle = vehicleSerializer(required = False)
     class Meta :
         model = payment
-        fields =['user','status','branch','date','time','amount','transaction_id','types','remark','vehicle']
+        fields =['id','user','status','branch','date','time','amount','transaction_id','types','remark','vehicle']
+  
+class addpaymentSerializer(serializers.ModelSerializer):
+    class Meta :
+        model = payment
+        fields =['id','user','status','branch','date','time','amount','transaction_id','types','remark','vehicle']
+        extra_kwargs = {
+            'vehicle': {'required': False},
+            'amount' :{'required': False},
+            'remark' :{'required': False},
+            'transaction_id' :{'required': False},
+             'user' : {'required': False},
+                     }
 class travelhistorySerializer(serializers.ModelSerializer):
     ticket = ticketSerializer()
-    vehicle = vehicleSerializer()
+    vehicle = vehiclesSerializer()
     payment = paymentSerializer()
+ 
     class Meta :
         model = travelhistory
-        fields = ['id','time','used','ticket','vehicle','payment']
+        fields = ['id','branch','time','used','ticket','vehicle','payment','user']
 
 class notificationSerilalizer(serializers.ModelSerializer):
     branch = branchSerializer(required = False)
@@ -271,9 +324,10 @@ class UsertravelSerializer(serializers.ModelSerializer):
     travel_history = travelhistorySerializer(
         many=True, 
         read_only=True,
-        source='travel_history.all'  # Explicitly specify the relation
+        source='travel_history.all' 
     )
     nid = nidSerializer()
+    
     class Meta :
         model = user
         fields = ['id','date_joined','employee','phone_number','nid','travel_history']

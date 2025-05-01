@@ -42,6 +42,12 @@ const Sidebar = ({  }) => {
                     <span className="text">Stations & Trips</span>
                 </a>
                 </li>
+                <li >
+                   <a href="/passengers">
+                   <span className="icon"><i className="fa-solid fa-user"></i>    </span>
+                       <span className="text">Passengers</span>
+                   </a>
+                   </li>
                 
                 <li>
                   <a href="/subadmin">
@@ -65,8 +71,9 @@ const Sidebar = ({  }) => {
                        <span className="text">Vehicles</span>
                    </a>
                    </li>
+                 
                    <li >
-                   <a href="/vehicles">
+                   <a href="/ticket">
                    <span className="icon"><i className="fa-solid fa-ticket"></i>    </span>
                        <span className="text">Ticket</span>
                    </a>

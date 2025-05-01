@@ -10,6 +10,7 @@ class route(models.Model):
     name = models.CharField(max_length=50)
     first_destination = models.ForeignKey(branch, on_delete=models.CASCADE, related_name='origin',null=True)
     last_destination = models.ForeignKey(branch, on_delete=models.CASCADE, related_name='destination',null=True)
+    distance = models.IntegerField(default= 0)
     route_prize = models.DecimalField(max_digits=10 , decimal_places=2)
 
 
@@ -51,5 +52,29 @@ class documentation (models.Model):
     did = models.CharField(max_length=100, unique=True)
     vehicle = models.ForeignKey(vehicle , on_delete=models.CASCADE,related_name='vehicle_doc')
 
+class ExitSlip(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'p', 'Pending'
+        APPROVED = 'a', 'Approved'
+        REJECTED = 'r', 'Rejected'
+        COMPLETED = 'c', 'Completed'
 
+    vehicle = models.ForeignKey(vehicle, on_delete=models.CASCADE)
+    driver = models.ForeignKey(user, on_delete=models.CASCADE)
+    from_location = models.ForeignKey(branch, related_name='exit_from', on_delete=models.CASCADE)
+    to_location = models.ForeignKey(branch, related_name='exit_to', on_delete=models.CASCADE)
+    departure_time = models.DateTimeField()
+    passenger_count = models.IntegerField()
+    status = models.CharField(max_length=1, choices=Status.choices, default=Status.PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    qr_code = models.CharField(max_length=255, blank=True)
+
+    def __str__(self):
+        return f"Exit Slip #{self.id} - {self.vehicle.plate_number}"
+
+    def save(self, *args, **kwargs):
+        if not self.qr_code:
+            self.qr_code = f"EXIT-{self.id}-{self.vehicle.plate_number}"
+        super().save(*args, **kwargs)
 

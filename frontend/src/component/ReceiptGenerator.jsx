@@ -1,6 +1,8 @@
-
-
+import PropTypes from "prop-types";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 import { useState } from "react"
+import { useRef } from "react";
 
 const ReceiptGenerator = ({ onClose }) => {
   const [formData, setFormData] = useState({
@@ -19,7 +21,10 @@ const ReceiptGenerator = ({ onClose }) => {
 
   const [errors, setErrors] = useState({})
   const [receiptGenerated, setReceiptGenerated] = useState(false)
-
+   const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState(null);
+    const receiptRef = useRef(null);
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData({
@@ -87,18 +92,66 @@ const ReceiptGenerator = ({ onClose }) => {
   }
 
   const handlePrint = () => {
-    // In a real app, this would use a library like jsPDF to generate a PDF
+    
     window.print()
   }
 
-  const handleDownload = () => {
-    // In a real app, this would use a library like jsPDF to generate a PDF
-    alert("In a production environment, this would download a PDF of the receipt.")
-  }
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "ETB",
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const handleDownload = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const receiptElement = receiptRef.current;
+      const canvas = await html2canvas(receiptElement, {
+        scale: 1,
+        logging: false,
+        useCORS: true,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+
+      
+      const pdf = new jsPDF("p", "mm", "a4"); 
+      const imgWidth = 150; 
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save(`receipt-${formData.receiptNumber}.pdf`);
+
+      setSuccess(true);
+
+      // Reset success message after 3 seconds
+      setTimeout(() => {
+        setSuccess(false);
+      }, 3000);
+    } catch (err) {
+      console.error("PDF generation failed:", err);
+      setError("Failed to generate receipt. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   return (
     <div className="modal-backdrop">
       <div className="modal receipt-modal">
+        
         <div className="modal-header">
           <h2 className="modal-title">Generate Receipt</h2>
           <button className="modal-close" onClick={onClose}>
@@ -279,6 +332,7 @@ const ReceiptGenerator = ({ onClose }) => {
           ) : (
             <div className="receipt-preview">
               <div className="receipt">
+              <div className="receipt" ref={receiptRef}>
                 <div className="receipt-header">
                   <h1 className="company-name">QuickTrip</h1>
                   <p className="company-tagline">Vehicle Management System</p>
@@ -372,6 +426,7 @@ const ReceiptGenerator = ({ onClose }) => {
                 <button className="btn btn-outline" onClick={onClose}>
                   Close
                 </button>
+                </div>
               </div>
             </div>
           )}

@@ -145,7 +145,7 @@ export default function Vehicles() {
                 <th>Year</th>
                 <th>Route</th>
                 <th>Insurance Expiry</th>
-                <th>Actions</th>
+                 
               </tr>
             </thead>
             <tbody>
@@ -161,12 +161,7 @@ export default function Vehicles() {
                   <td   className={vehicle.insurance_date && vehicle.insurance_date < new Date() ? "text-danger" : ""}>
   {vehicle.insurance_date}
 </td>
-                  <td>
-                    <div className="action-buttons">
-                      <button className="btn btn-sm btn-primary"onClick={() => {setShowVehicleManagmentModal(true);setSelectedVehicleId(vehicle.id)}}>Edit</button>
-                      <button className="btn btn-sm btn-danger">Delete</button>
-                    </div>
-                  </td>
+                  
                 </tr>
               ))}
             </tbody>

@@ -77,7 +77,7 @@ const handleChanges = (event) => {
     <div className="modal-backdrop">
       <div className="modal">
         <div className="modal-header">
-          <h2 className="modal-title">Register New Vehicle</h2>
+          <h2 className="modal-title">Register New Route</h2>
           <button className="modal-close" onClick={onClose}>
             &times;
           </button>
@@ -85,7 +85,7 @@ const handleChanges = (event) => {
 
         <div className="modal-body">
           <form onSubmit={addRoute}>
-            <h3 className="section-title">Driver Information</h3>
+            <h3 className="section-title">Route Information</h3>
 
             <div className="form-group">
               <label htmlFor="name" className="form-label">
@@ -168,11 +168,11 @@ const handleChanges = (event) => {
 
 
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary">
+              <button type="button" className="btn btn-secondary"onClick={onClose}>
                 Cancel
               </button>
               <button type="submit" className="btn btn-primary" >
-                Register Branch
+                Register Route
               </button>
             </div>
           </form>

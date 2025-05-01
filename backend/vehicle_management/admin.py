@@ -4,5 +4,6 @@ from .models import *
 
 admin.site.register(type)
 admin.site.register(documentation)
+admin.site.register(ExitSlip)
 admin.site.register(location)
 # Register your models here.

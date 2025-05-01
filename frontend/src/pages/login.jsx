@@ -98,7 +98,7 @@ function Login() {
             {loading ? "Logging in..." : `Login `}
           </button>
         </form>
-        <a href=''>Forgot Password ?</a>
+       
 
         <div className="login-footer">
           <p>For Admin and subadmin users only</p>

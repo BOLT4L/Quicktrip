@@ -3,14 +3,22 @@ import { useState, useContext, useEffect } from "react"
 import Sidebar from "../../component/sidebar"
 import Header from "../../component/Header"
 import api from "../../api"
+import PaymentReceiptGenerator from "../../component/PaymentRecieptGenerator"
 export default function Payments() {
  const [activeTab, setActiveTab] = useState("p")
   const [searchTerm, setSearchTerm] = useState("")
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [selectedDriver, setSelectedDriver] = useState(null)
-
-  // Mock data for payments
+  const [showReceiptGenerator , setshowReceiptGenerator] = useState(false)
+  const [ selectedPayment , setSelectedpayment]  = useState([])
   const [payments, setPayments] = useState([])
+  const [pformData, setpFormData] = useState({
+    status: 'c',
+    transaction_id: "12132xw1212",
+    types: 'i',
+    remark :'Ticket Purchase',
+
+  });
   useEffect(()=>{
     getPayment()
   },[])
@@ -29,27 +37,45 @@ export default function Payments() {
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch =
       payment.user.employee.Fname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      payment.vehicle.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      payment.vehicle.plate_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.remark.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (activeTab === "all") return matchesSearch
     return matchesSearch && payment.status === activeTab
   })
 
-  const handlePayment = (driver) => {
+ 
+  const handlePayment = (pid , driver) => {
     setSelectedDriver(driver)
     setShowPaymentModal(true)
-  }
 
-  const processPayment = () => {
+    try {
+      const response = api.put(`/api/pay/${pid}/`, { status: 'c'});
+    
+      
+    } catch (err) {
+      console.log(err.response?.data?.detail || "Error deactivating user");
+    } finally {
+      
+    }
+  };
+
+const [loadings, setLoadings] = useState(false);
+  const processPayment = async() => {
     // In a real app, this would process the payment via API
-    setPayments(
-      payments.map((payment) =>
-        payment.id === selectedDriver.id
-          ? { ...payment, status: "completed", date: new Date().toISOString().split("T")[0] }
-          : payment,
-      ),
-    )
+    setLoadings(true);
+    try {
+     
+      const response = await fetch('http://127.0.0.1:8000/api/payment/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 500.00 }),
+      });
+      window.location.href = response.url;  
+    } catch (error) {
+      alert("Payment initiation failed!");
+      setLoadings(false);
+    }
     setShowPaymentModal(false)
   }
 
@@ -111,8 +137,8 @@ export default function Payments() {
               {filteredPayments.length > 0 ? (
                 filteredPayments.map((payment) => (
                   <tr key={payment.id}>
-                    <td>{payment.user.employee.Fname}</td>
-                    <td>{payment.vehicle.plate_number}</td>
+                    <td>{payment.user?.employee.Fname}</td>
+                    <td>{payment.vehicle != null ?payment.vehicle.plate_number :"N/A  "}</td>
                     <td>${payment.amount}</td>
                     <td>{payment.remark}</td>
                     <td>{new Date(payment.time).toLocaleDateString()}</td>
@@ -123,11 +149,11 @@ export default function Payments() {
                     </td>
                     <td>
                       {payment.status === "p" ? (
-                        <button className="btn btn-sm btn-primary" onClick={() => handlePayment(payment)}>
+                        <button className="btn btn-sm btn-primary" onClick={() => handlePayment(payment.id ,payment)}>
                           Process Payment
                         </button>
                       ) : (
-                        <button className="btn btn-sm btn-secondary">View Receipt</button>
+                        <button className="btn btn-sm btn-secondary"onClick={() => {setSelectedpayment(payment),setshowReceiptGenerator(true)}} >View Receipt</button>
                       )}
                     </td>
                   </tr>
@@ -224,6 +250,7 @@ export default function Payments() {
         </div>
       )}
       </div>
+      {showReceiptGenerator && <PaymentReceiptGenerator payment={selectedPayment} onClose={() => setshowReceiptGenerator(false)} />}
       <style jsx>{`
         .payments-page {
           display: flex;

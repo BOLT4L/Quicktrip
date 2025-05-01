@@ -9,7 +9,7 @@ const BranchRegistrationModal = ({ onClose , onSave }) => {
     address: "",
     type: "",
     name: "",
-    location : {latitude:"",longitude:""
+    location : {latitude:"1",longitude:"10"
     },
   
   })
@@ -73,7 +73,7 @@ const BranchRegistrationModal = ({ onClose , onSave }) => {
     <div className="modal-backdrop">
       <div className="modal">
         <div className="modal-header">
-          <h2 className="modal-title">Register New Vehicle</h2>
+          <h2 className="modal-title">Register New Station </h2>
           <button className="modal-close" onClick={onClose}>
             &times;
           </button>
@@ -81,7 +81,7 @@ const BranchRegistrationModal = ({ onClose , onSave }) => {
 
         <div className="modal-body">
           <form >
-            <h3 className="section-title">Driver Information</h3>
+            <h3 className="section-title">Station Information</h3>
 
             <div className="form-group">
               <label htmlFor="name" className="form-label">
@@ -133,57 +133,14 @@ const BranchRegistrationModal = ({ onClose , onSave }) => {
                     ...prev,
                     type :e.target.value
                   }))}>
-              <option value="">All Roles</option>
+              <option value="">All Types</option>
               <option value="m">Main </option>
               <option value="b">Branch</option>
             </select>
           </div>
           </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="longitude" className="form-label">
-                  Longitude
-                </label>
-                <input
-                  type="number"
-                  id="longitude"
-                  name="longitude"
-                  className={`form-control ${errors.longitude? "is-invalid" : ""}`}
-                  value={formData.location.longitude}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    location: {
-                      ...prev.location,
-                      longitude: e.target.value
-                    }
-                  }))}
-                />
-                {errors.longitude && <div className="error-message">{errors.longitude}</div>}
-              </div>
-              </div>
-              <div className="form-row">
-              <div className="form-group">
-                <label htmlFor="latitude" className="form-label">
-                  Latitude
-                </label>
-                <input
-                  type="number"
-                  id="latitude"
-                  name="latitude"
-                  className={`form-control ${errors.latitude ? "is-invalid" : ""}`}
-                  value={formData.location.latitude}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    location: {
-                      ...prev.location,
-                      latitude: e.target.value
-                    }
-                  }))}
-                />
-                {errors.latitude && <div className="error-message">{errors.latitude}</div>}
-              </div>
-              </div>
+           
 
            
 

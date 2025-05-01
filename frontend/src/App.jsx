@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/admin/home";
 import Branch from "./pages/admin/branch";
-import Add from "./pages/admin/add";
+import Sub_admin from "./pages/admin/sub_admins";
 import Sub_home from "./pages/sub/home";
 import Login from "./pages/login";
 import Protected from "./pages/protected";
@@ -28,6 +28,7 @@ import Authpro from "./pages/authpro";
 import VehicleTracker from "./pages/admin/vehicle";
 import Vehicles from "./pages/admin/vehicles";
 import Payments from "./pages/admin/payment";
+import TicketPurchase from "./pages/admin/ticket";
 function Logout() {
   localStorage.clear();
   return <Navigate to="/login" />;
@@ -136,10 +137,10 @@ function App() {
           }
         />
         <Route
-          path="/buyticket/"
+          path="/ticket/"
           element={
             <Protected allowedRoles={"s"}>
-              <Buyticket/>
+              <TicketPurchase/>
             </Protected>
           }
         />
@@ -170,9 +171,8 @@ function App() {
          <Route
           path="/home/"
           element={
-            <Authpro>
+           
               <Report />
-            </Authpro>
           }
         />
         <Route
@@ -196,6 +196,7 @@ function App() {
           element={
             
               <Settings />
+            
       
           }
         />
@@ -204,7 +205,7 @@ function App() {
           path="/subadmin/"
           element={
             <Protected allowedRoles={"a"}>
-              <Add />
+              <Sub_admin/>
             </Protected>
           }
         />
@@ -219,7 +220,7 @@ function App() {
         <Route path="/unauthorized" element={<Unauthorized />} />
         
         <Route path="/logout" element={<Logout />} />
-        <Route path="*" element={<Unauthorized />} />
+       
       </Routes>
     </BrowserRouter>
     </ThemeProvider>

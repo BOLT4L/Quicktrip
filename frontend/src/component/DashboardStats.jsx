@@ -23,7 +23,7 @@ const DashboardStats = ({vehicles , payments}) => {
         <div className="stat-card">
           <div className="stat-icon purple">💰</div>
           <div className="stat-content">
-            <h3>${stats.totalRevenue}</h3>
+            <h3>{stats.totalRevenue} ETB</h3>
             <p>Total Revenue</p>
           </div>
         </div>
@@ -31,7 +31,7 @@ const DashboardStats = ({vehicles , payments}) => {
         <div className="stat-card">
           <div className="stat-icon pink">📊</div>
           <div className="stat-content">
-            <h3>${stats.taxCollected.toLocaleString()}</h3>
+            <h3>{stats.taxCollected.toLocaleString()} ETB</h3>
             <p>Tax Collected</p>
           </div>
         </div>

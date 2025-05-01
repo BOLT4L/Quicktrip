@@ -203,15 +203,15 @@ const VehicleRegistrationModal = ({ onClose, onSave }) => {
       if (Vpicture) formDataToSend.append('picture', Vpicture);
       if (picture) formDataToSend.append('insurance_doc', picture);
 
-      const res = await api.post(`api/vehicle/${branch}`, formDataToSend, {
+      const res = await api.post(`api/add_vehicle/${branch}`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       
       if (res.status === 201) {
-        onSave?.(); // Call the onSave callback if provided
-        onClose(); // Close the modal
+        
+        window.location.href = `/vehicles`;
       }
     } catch (error) {
       console.error("Error submitting form:", error);

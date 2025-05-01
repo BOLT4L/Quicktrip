@@ -30,7 +30,7 @@ const RecentVehicles = ({vehicles}) => {
           </tbody>
         </table>
   
-        <style jsx>{`
+        <style  jsx={true}>{`
           .action-buttons {
             display: flex;
             gap: 5px;

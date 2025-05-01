@@ -1,26 +1,25 @@
-
-import { useState } from "react"
+import { useState } from "react";
 
 const DriverContactModal = ({ driver, onClose }) => {
-  const [messageTab, setMessageTab] = useState(false)
-  const [message, setMessage] = useState("")
-  const [messageSent, setMessageSent] = useState(false)
+  const [messageTab, setMessageTab] = useState(false);
+  const [message, setMessage] = useState("");
+  const [messageSent, setMessageSent] = useState(false);
 
   const handleSendMessage = () => {
-    if (!message.trim()) return
+    if (!message.trim()) return;
 
     // In a real app, this would send the message via API
     // For this demo, we'll simulate sending with a timeout
     setTimeout(() => {
-      setMessageSent(true)
-      setMessage("")
+      setMessageSent(true);
+      setMessage("");
 
       // Reset success message after 3 seconds
       setTimeout(() => {
-        setMessageSent(false)
-      }, 3000)
-    }, 1000)
-  }
+        setMessageSent(false);
+      }, 3000);
+    }, 1000);
+  };
 
   return (
     <div className="modal-backdrop">
@@ -34,10 +33,16 @@ const DriverContactModal = ({ driver, onClose }) => {
 
         <div className="modal-body">
           <div className="tabs">
-            <button className={`tab ${!messageTab ? "active" : ""}`} onClick={() => setMessageTab(false)}>
+            <button
+              className={`tab ${!messageTab ? "active" : ""}`}
+              onClick={() => setMessageTab(false)}
+            >
               Contact Info
             </button>
-            <button className={`tab ${messageTab ? "active" : ""}`} onClick={() => setMessageTab(true)}>
+            <button
+              className={`tab ${messageTab ? "active" : ""}`}
+              onClick={() => setMessageTab(true)}
+            >
               Send Message
             </button>
           </div>
@@ -46,7 +51,9 @@ const DriverContactModal = ({ driver, onClose }) => {
             <div className="contact-info">
               <div className="driver-profile">
                 <div className="avatar">
-                  <div className="avatar-placeholder">{driver.employee.Fname.charAt(0)}</div>
+                  <div className="avatar-placeholder">
+                    {driver.employee.Fname.charAt(0)}
+                  </div>
                 </div>
                 <h3 className="driver-name">{driver.employee.Fname}</h3>
               </div>
@@ -69,21 +76,7 @@ const DriverContactModal = ({ driver, onClose }) => {
                   </div>
                 </div>
 
-                <div className="info-item">
-                  <div className="info-icon">✉️</div>
-                  <div className="info-content">
-                    <div className="info-label">Email Address</div>
-                    <div className="info-value">{driver.employee.Fname.toLowerCase().replace(" ", ".") + "@quicktrip.com"}</div>
-                    <div className="info-actions">
-                      <a
-                        href={`mailto:${driver.employee.Fname.toLowerCase().replace(" ", ".") + "@quicktrip.com"}`}
-                        className="action-link"
-                      >
-                        Send Email
-                      </a>
-                    </div>
-                  </div>
-                </div>
+                 
               </div>
 
               <div className="info-section">
@@ -92,12 +85,9 @@ const DriverContactModal = ({ driver, onClose }) => {
                   <div className="info-icon">🆔</div>
                   <div className="info-content">
                     <div className="info-label">Driver ID</div>
-                    <div className="info-value">
-                      {driver.id}
-                    </div>
+                    <div className="info-value">{driver.id}</div>
                   </div>
                 </div>
-
 
                 <div className="info-item">
                   <div className="info-icon">📍</div>
@@ -109,7 +99,10 @@ const DriverContactModal = ({ driver, onClose }) => {
               </div>
 
               <div className="contact-actions">
-                <button className="btn btn-primary" onClick={() => setMessageTab(true)}>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => setMessageTab(true)}
+                >
                   Send Message
                 </button>
               </div>
@@ -150,10 +143,17 @@ const DriverContactModal = ({ driver, onClose }) => {
                   </div>
 
                   <div className="message-actions">
-                    <button className="btn btn-secondary" onClick={() => setMessageTab(false)}>
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => setMessageTab(false)}
+                    >
                       Back
                     </button>
-                    <button className="btn btn-primary" onClick={handleSendMessage} disabled={!message.trim()}>
+                    <button
+                      className="btn btn-primary"
+                      onClick={handleSendMessage}
+                      disabled={!message.trim()}
+                    >
                       Send Message
                     </button>
                   </div>
@@ -168,13 +168,13 @@ const DriverContactModal = ({ driver, onClose }) => {
         .contact-modal {
           max-width: 500px;
         }
-        
+
         .tabs {
           display: flex;
           border-bottom: 1px solid var(--border-color);
           margin-bottom: 20px;
         }
-        
+
         .tab {
           padding: 10px 20px;
           background: none;
@@ -185,19 +185,19 @@ const DriverContactModal = ({ driver, onClose }) => {
           color: var(--text-secondary);
           transition: all 0.2s;
         }
-        
+
         .tab.active {
           color: var(--primary-color);
           border-bottom-color: var(--primary-color);
         }
-        
+
         .driver-profile {
           display: flex;
           flex-direction: column;
           align-items: center;
           margin-bottom: 20px;
         }
-        
+
         .avatar {
           width: 80px;
           height: 80px;
@@ -205,7 +205,7 @@ const DriverContactModal = ({ driver, onClose }) => {
           overflow: hidden;
           margin-bottom: 10px;
         }
-        
+
         .avatar-placeholder {
           width: 100%;
           height: 100%;
@@ -217,28 +217,28 @@ const DriverContactModal = ({ driver, onClose }) => {
           font-size: 2rem;
           font-weight: bold;
         }
-        
+
         .driver-name {
           font-size: 1.2rem;
           margin: 0;
         }
-        
+
         .info-section {
           margin-bottom: 20px;
         }
-        
+
         .info-section h4 {
           font-size: 1rem;
           margin-bottom: 15px;
           padding-bottom: 5px;
           border-bottom: 1px solid var(--border-color);
         }
-        
+
         .info-item {
           display: flex;
           margin-bottom: 15px;
         }
-        
+
         .info-icon {
           width: 40px;
           height: 40px;
@@ -250,53 +250,53 @@ const DriverContactModal = ({ driver, onClose }) => {
           margin-right: 15px;
           font-size: 1.2rem;
         }
-        
+
         .info-content {
           flex: 1;
         }
-        
+
         .info-label {
           font-size: 0.8rem;
           color: var(--text-secondary);
           margin-bottom: 5px;
         }
-        
+
         .info-value {
           font-weight: 500;
           margin-bottom: 5px;
         }
-        
+
         .info-actions {
           display: flex;
           gap: 15px;
         }
-        
+
         .action-link {
           color: var(--primary-color);
           font-size: 0.9rem;
           text-decoration: none;
         }
-        
+
         .action-link:hover {
           text-decoration: underline;
         }
-        
+
         .contact-actions {
           display: flex;
           justify-content: center;
           margin-top: 20px;
         }
-        
+
         .message-form {
           padding: 10px 0;
         }
-        
+
         .message-actions {
           display: flex;
           justify-content: space-between;
           margin-top: 20px;
         }
-        
+
         .success-message {
           display: flex;
           flex-direction: column;
@@ -305,7 +305,7 @@ const DriverContactModal = ({ driver, onClose }) => {
           padding: 30px 0;
           text-align: center;
         }
-        
+
         .success-icon {
           width: 50px;
           height: 50px;
@@ -317,7 +317,7 @@ const DriverContactModal = ({ driver, onClose }) => {
           justify-content: center;
           font-size: 1.5rem;
         }
-        
+
         .success-message p {
           font-size: 1.1rem;
           color: var(--success-color);
@@ -325,8 +325,7 @@ const DriverContactModal = ({ driver, onClose }) => {
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default DriverContactModal
-
+export default DriverContactModal;

@@ -6,14 +6,13 @@ export const ThemeContext = createContext()
 export function ThemeProvider({ children }) {
   const [darkMode, setDarkMode] = useState(false)
 
-  // Initialize theme from localStorage if available
   useEffect(() => {
     const savedTheme = localStorage.getItem("quicktrip_theme")
     if (savedTheme) {
       setDarkMode(savedTheme === "dark")
     } else {
-      // Check if user prefers dark mode
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+     
+      const prefersDark = window.matchMedia("(prefers-color-scheme: light)").matches
       setDarkMode(prefersDark)
     }
   }, [])

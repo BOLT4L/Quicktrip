@@ -20,10 +20,107 @@ function Home(){
   const [showBranchModal, setShowBranchModal] = useState(false)
   const [showRouteModal, setShowRouteModal] = useState(false)
    const [stations, setBranch] =  useState([])
+   const [passengers, setPassengers] = useState([])
+   const [vehicles, setVehicles] = useState([]);
+   const [report, setReport] = useState([]);
+   const [subAdmins, setSubAdmins] = useState([])
    useEffect(()=>{
+    getVehicle()
+    getStaffs()
     getBranch()
-   },[])
+    getPassenger()
+    getReport()
    
+   },[])
+   const getReport = () => {
+    api
+      .get('api/payments/')
+      .then((res) => res.data)
+      .then((data) => {
+        setReport(data);
+        
+      })
+      .catch((err) => alert(err));
+  };
+   const getPassenger = () => {
+    api
+      .get('api/passengers/')
+      .then((res) => res.data)
+      .then((data) => {
+        setPassengers(data);
+        console.log(data);
+      })
+      .catch((err) => alert(err));
+  };
+  const getVehicle = () => {
+    api
+      .get('api/vehicles/')
+      .then((res) => res.data)
+      .then((data) => {
+        setVehicles(data);
+        
+      })
+      .catch((err) => {
+      
+      });
+  };
+  const getStaffs = () => {
+    api
+      .get('api/staffs/')
+      .then((res) => res.data)
+      .then((data) => {
+        setSubAdmins(data);
+        console.log(data);
+      })
+      .catch((err) => alert(err));
+  };
+  
+  const countPassengersByBranch = (passengerData ,bid ) => {
+    var counts = 0 ;
+    
+    passengerData.forEach(passenger => {
+      if (!passenger?.travel_history?.length) return ['No travel history'];
+    
+    return passenger.travel_history.map(history => {
+       
+       if (history.branch === bid) {
+        counts ++;
+      }}
+    );
+    
+      
+    });
+    return counts;
+  };
+
+  const countRevenuesByBranch = (revenue ,bid ) => {
+    var counts = 0 ;
+    
+    revenue.forEach(rev => {
+      if (rev.branch === bid && rev.types ==='i' ) {
+        counts = (counts + Number(rev.amount));
+      }
+   
+      
+    });
+    return counts;
+  };
+  const countVehiclesByBranch = (vehicless ,bid ) => {
+    var counts = 0 ;
+    
+    vehicless.forEach(vehicle => {
+         if (vehicle.branch.id === bid) {
+        counts ++;
+      }
+  });
+  return counts ;
+};
+const getManger = (sub, bid) => {
+  const manager = sub.find(s => 
+    s.branch.id === bid && s.employee.position === "Station Manager"
+  );
+  return manager ? `${manager.employee.Fname}  ${manager.employee.Lname}` : "Not Assigned";
+};
   useEffect(() => {
     // Set the first station as selected by default if none is selected
     if (stations.length > 0 && !selectedStation) {
@@ -33,7 +130,7 @@ function Home(){
 
   const filteredStations = stations.filter(
     (station) =>
-      station.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      station.name.includes(searchTerm.toLowerCase()) ||
       station.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
       station.address.toLowerCase().includes(searchTerm.toLowerCase()),
   )
@@ -122,9 +219,9 @@ function Home(){
                   onClick={() => handleStationSelect(station)}
                 >
                   <div className="station-name">{station.name}</div>
-                  <div className="station-manager">{station.id}</div>
+                  
                   <div className={`station-status ${station.type}`}>
-                    {station.type.charAt(0).toUpperCase() + station.type.slice(1)}
+                    {station.type.charAt(0).toUpperCase() }
                   </div>
                 </div>
               ))
@@ -148,7 +245,7 @@ function Home(){
                 <div className="detail-card">
                   <div className="detail-icon passenger">👥</div>
                   <div className="detail-content">
-                    <div className="detail-value">{selectedStation.id.toLocaleString()}</div>
+                    <div className="detail-value">{countPassengersByBranch(passengers, selectedStation.id)}</div>
                     <div className="detail-label">Total Passengers</div>
                   </div>
                 </div>
@@ -156,7 +253,7 @@ function Home(){
                 <div className="detail-card">
                   <div className="detail-icon revenue">💰</div>
                   <div className="detail-content">
-                    <div className="detail-value">${selectedStation.id.toLocaleString()}</div>
+                    <div className="detail-value">${countRevenuesByBranch(report, selectedStation.id)}</div>
                     <div className="detail-label">Total Revenue</div>
                   </div>
                 </div>
@@ -164,7 +261,7 @@ function Home(){
                 <div className="detail-card">
                   <div className="detail-icon vehicles">🚗</div>
                   <div className="detail-content">
-                    <div className="detail-value">{selectedStation.id}</div>
+                    <div className="detail-value">{countVehiclesByBranch(vehicles, selectedStation.id)}</div>
                     <div className="detail-label">Registered Vehicles</div>
                   </div>
                 </div>
@@ -172,7 +269,7 @@ function Home(){
                 <div className="detail-card">
                   <div className="detail-icon manager">👤</div>
                   <div className="detail-content">
-                    <div className="detail-value">{selectedStation.name}</div>
+                    <div className="detail-value">{getManger(subAdmins, selectedStation.id)}</div>
                     <div className="detail-label">Station Manager</div>
                   </div>
                 </div>

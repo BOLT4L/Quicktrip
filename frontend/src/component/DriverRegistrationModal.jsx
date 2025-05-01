@@ -111,7 +111,7 @@ const DriverRegistrationModal = ({ onClose, onSave }) => {
 
     if (!employee.Fname.trim()) newErrors.Fname = "First name is required";
     if (!employee.Lname.trim()) newErrors.Lname = "Last name is required";
-    if (!phone_number.trim()) newErrors.phone_number = "Phone number is required";
+    if (!phone_number) newErrors.phone_number = "Phone number is required";
     if (!selectedUserId) newErrors.nid = "National ID is required";
     if (!credentials.did.trim()) newErrors.licenseNumber = "License number is required";
     if (!credentials.expiry_date) newErrors.licenseExpiry = "License expiry date is required";
@@ -256,7 +256,8 @@ const DriverRegistrationModal = ({ onClose, onSave }) => {
                             ...employee,
                             Fname: user.Fname || employee.Fname,
                             Lname: user.Lname || employee.Lname
-                          });
+                                                    });
+                       
                         }}
                       >
                         {user.Fname} {user.Lname}, FAN: {user.FAN}

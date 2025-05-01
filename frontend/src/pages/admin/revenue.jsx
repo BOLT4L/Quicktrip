@@ -5,15 +5,17 @@ import ReportChart from "../../component/ReportChart"
 import ReceiptGenerator from "../../component/ReceiptGenerator"
 import RevenueChart from "../../component/RevenueChart"
 import api from "../../api"
+import { saveAs } from 'file-saver';
 export default function Revenue() {
   
   const [report, setReport] = useState([]);
   const [reportType, setReportType] = useState("revenue")
   const [timeRange, setTimeRange] = useState("monthly")
   const [showReceiptGenerator, setShowReceiptGenerator] = useState(false)
- 
+  const [passengers, setPassengers] = useState([])
   useEffect(()=>{
     getReport()
+    getPassenger()
   },[])
   const getReport = () => {
     api
@@ -28,6 +30,20 @@ export default function Revenue() {
         setLoading(false);
       });
   };
+  const getPassenger = () => {
+    api
+      .get('api/passengers/')
+      .then((res) => res.data)
+      .then((data) => {
+        setPassengers(data);
+        console.log(data);
+      })
+      .catch((err) => alert(err));
+  };
+  
+  
+
+
   const totalRevenue = report.reduce((sum, payment) => {
 
     if (payment.types === 'i') {  // or whatever field indicates income
@@ -61,6 +77,89 @@ export default function Revenue() {
     }
     return sum;  // Skip non-income payments
   }, 0);
+
+  const [loading, setLoading] = useState(false);
+  const [loadings, setLoadings] = useState(false);
+  const [loadingss, setLoadingss] = useState(false);
+  const [load, setLoad] = useState(false);
+  
+  const downloadMonthlyReport = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get('/api/reports/monthly-revenue/', {
+        responseType: 'blob'  
+      });
+      
+      const currentDate = new Date();
+      const filename = `revenue_report_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.pdf`;
+      
+      saveAs(new Blob([response.data]), filename);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert('Failed to download report');
+    } finally {
+      setLoading(false);
+    }
+  };
+  const downloadMonthlyTax= async () => {
+    setLoadingss(true);
+    try {
+      const response = await api.get('/api/reports/monthly-tax/', {
+        responseType: 'blob'  
+      });
+      
+      const currentDate = new Date();
+      const filename = `TAX_report_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.pdf`;
+      
+      saveAs(new Blob([response.data]), filename);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert('Failed to download report');
+    } finally {
+      setLoadingss(false);
+    }
+  };
+  const downloadMonthlyVehicle = async () => {
+    setLoadings(true);
+    try {
+      const response = await api.get('/api/reports/vehicles/pdf/', {
+        responseType: 'blob'  
+      });
+      
+      const currentDate = new Date();
+      const filename = `revenue_report_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.pdf`;
+      
+      saveAs(new Blob([response.data]), filename);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert('Failed to download report');
+    } finally {
+      setLoadings(false);
+    }
+  };
+  const downloadpassenger = async () => {
+    setLoad(true);
+    try {
+      const response = await api.get('/api/reports/passenger/', {
+        responseType: 'blob'  
+      });
+      
+      const currentDate = new Date();
+      const filename = `revenue_report_${currentDate.getFullYear()}_${currentDate.getMonth() + 1}.pdf`;
+      
+      saveAs(new Blob([response.data]), filename);
+    } catch (error) {
+      console.error('Error downloading report:', error);
+      alert('Failed to download report');
+    } finally {
+      setLoad(false);
+    }
+  };
+
+  const currentDate = new Date();
+  const monthYear = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+
   return (
     <div className="reports-page">
         <Sidebar/>
@@ -109,26 +208,24 @@ export default function Revenue() {
             <div className="summary-stats">
               <div className="stat-item">
                 <span className="stat-label">Total Revenue</span>
-                <span className="stat-value">${totalRevenue}</span>
-                <span className="stat-change positive">+12.5%</span>
+                <span className="stat-value">{totalRevenue} ETB</span>
+                
               </div>
 
               <div className="stat-item">
                 <span className="stat-label">Total Expense</span>
-                <span className="stat-value">${totalExpense}</span>
-                <span className="stat-change positive">+8.3%</span>
+                <span className="stat-value">{totalExpense} ETB </span>
+                
               </div>
 
               <div className="stat-item">
                 <span className="stat-label">Total Passengers</span>
-                <span className="stat-value">12,450</span>
-                <span className="stat-change positive">+15.2%</span>
+                <span className="stat-value">{passengers.length}</span>
               </div>
 
               <div className="stat-item">
                 <span className="stat-label">Tax Collected</span>
-                <span className="stat-value">${totaltax}</span>
-                <span className="stat-change positive">+10.7%</span>
+                <span className="stat-value">{totaltax} ETB</span>
               </div>
             </div>
           </div>
@@ -140,41 +237,65 @@ export default function Revenue() {
           </div>
           <div className="card-content">
             <div className="recent-reports">
-              <div className="report-item">
-                <div className="report-icon">📊</div>
-                <div className="report-details">
-                  <h3>Monthly Revenue Report</h3>
-                  <p>October 2023</p>
-                </div>
-                <button className="btn btn-sm btn-outline">Download</button>
-              </div>
+            <div className="report-item">
+      <div className="report-icon">📊</div>
+      <div className="report-details">
+        <h3>Monthly Revenue Report</h3>
+        <p>{monthYear}</p>
+      </div>
+      <button 
+        className="btn btn-sm btn-outline" 
+        onClick={downloadMonthlyReport}
+        disabled={loading}
+      >
+        {loading ? 'Downloading...' : 'Download'}
+      </button>
+    </div>
 
               <div className="report-item">
                 <div className="report-icon">🚗</div>
                 <div className="report-details">
                   <h3>Vehicle Registration Report</h3>
-                  <p>Q3 2023</p>
-                </div>
-                <button className="btn btn-sm btn-outline">Download</button>
+                  <h3>Vehicle Report</h3>
+                  <p>{monthYear}</p>                </div>
+                  <button 
+        className="btn btn-sm btn-outline" 
+        onClick={downloadMonthlyVehicle}
+        disabled={loadings}
+      >
+        {loadings ? 'Downloading...' : 'Download'}
+      </button>
               </div>
 
               <div className="report-item">
-                <div className="report-icon">💰</div>
-                <div className="report-details">
-                  <h3>Tax Collection Report</h3>
-                  <p>September 2023</p>
-                </div>
-                <button className="btn btn-sm btn-outline">Download</button>
-              </div>
+      <div className="report-icon">💰</div>
+      <div className="report-details">
+        <h3>Monthly Expense Report</h3>
+        <p>{monthYear}</p>
+      </div>
+      <button 
+        className="btn btn-sm btn-outline" 
+        onClick={downloadMonthlyTax}
+        disabled={loadingss}
+      >
+        {loadingss ? 'Downloading...' : 'Download'}
+      </button>
+    </div>
 
-              <div className="report-item">
-                <div className="report-icon">👥</div>
-                <div className="report-details">
-                  <h3>Passenger Analytics</h3>
-                  <p>August 2023</p>
-                </div>
-                <button className="btn btn-sm btn-outline">Download</button>
-              </div>
+    <div className="report-item">
+      <div className="report-icon">💰</div>
+      <div className="report-details">
+        <h3> passengers Report</h3>
+        <p>{monthYear}</p>
+      </div>
+      <button 
+        className="btn btn-sm btn-outline" 
+        onClick={downloadpassenger}
+        disabled={load}
+      >
+        {load  ? 'Downloading...' : 'Download'}
+      </button>
+    </div>
             </div>
           </div>
         </div>

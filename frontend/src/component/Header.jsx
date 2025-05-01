@@ -24,35 +24,7 @@ const Header = ({  }) => {
         <ThemeToggle />
         <NotificationBell />
 
-        <div className="user-dropdown">
-          <button className="dropdown-toggle" onClick={toggleDropdown}>
-            <div className="avatar">
-             
-            </div>
-            <span className="user-name">eyob</span>
-            <span className="dropdown-arrow">▼</span>
-          </button>
-
-          {dropdownOpen && (
-            <div className="dropdown-menu">
-              <div className="dropdown-header">
-                <div className="avatar">
-                 
-                </div>
-                <div className="user-info">
-                  <h4>eyob</h4>
-                  <p>eyob@g.com</p>
-                </div>
-              </div>
-              <div className="dropdown-divider"></div>
-             
-              <div className="dropdown-divider"></div>
-              <button className="dropdown-item text-danger">
-                Logout
-              </button>
-            </div>
-          )}
-        </div>
+       
       </div>
 
       <style jsx>{`

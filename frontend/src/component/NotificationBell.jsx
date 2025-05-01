@@ -1,175 +1,264 @@
-
-import { useState, useEffect } from "react"
-import NotificationItem from "./NotificationItem"
-import MessageItem from "./MessageItem"
-import api from "../api"
-import { USER_ID } from "../constants"
-
+import { useState, useEffect } from "react";
+import NotificationItem from "./NotificationItem";
+import MessageItem from "./MessageItem";
+import api from "../api";
+import { USER_ID } from "../constants";
+import { BRANCH } from "../constants";
+import { USER_ROLE } from "../constants";
 const NotificationBell = () => {
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [activeTab, setActiveTab] = useState("notifications")
-  const [notifications, setNotifications] = useState([])
-  const [staff, setStaff] = useState([])
-  const [conversation , setConversation] = useState([])
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [activeTab, setActiveTab] = useState("notifications");
+  const [notifications, setNotifications] = useState([]);
+  const [subAdmins, setSubAdmins] = useState([]);
+  const [conversations, setConversations] = useState({});
+  const [selectedSubAdmin, setSelectedSubAdmin] = useState(null);
+  const [messageText, setMessageText] = useState("");
   const id = localStorage.getItem(USER_ID);
-  useEffect(()=>{
-    getSubadmin()
-    getNotification()
-    getMessages()
-  },[])
+  const user_role = localStorage.getItem(USER_ROLE);
+  const isSubAdmin = user_role === "s"
+  const br = localStorage.getItem(BRANCH)
+  useEffect(() => {
+    getSubAdmins();
+    getNotification();
+    getMessages();
+  }, []);
+
   const getNotification = () => {
     api
       .get(`api/ad_notif/${id}`)
       .then((res) => res.data)
       .then((data) => {
         setNotifications(data);
-        console.log(data);
       })
       .catch((err) => alert(err));
   };
-  const getSubadmin = () => {
+
+  const getSubAdmins = () => {
     api
       .get(`api/staffs/`)
       .then((res) => res.data)
       .then((data) => {
-        setStaff(data);
-        console.log(data);
+        const filteredSubAdmins = data.filter(
+          (user) => user.user_type === "s" && user.branch.id === Number(br) && user.id != id 
+        );
+        setSubAdmins(
+          filteredSubAdmins.map((subAdmin) => ({
+            id: subAdmin.id,
+            name: subAdmin.employee?.Fname || "Unknown",
+            avatar: null,
+            lastMessage: "",
+            time: "",
+            unread: false,
+          }))
+        );
       })
       .catch((err) => alert(err));
   };
+
   const getMessages = () => {
     api
       .get(`api/messages/${id}`)
       .then((res) => res.data)
       .then((data) => {
-        setConversation(data);
         const convos = {};
-        data.forEach(msg => {
-          const otherUserId = msg.sender.id === parseInt(id) ? msg.receiver.id : msg.sender.id;
+        const subAdminMap = {};
+
+        data.forEach((msg) => {
+          const otherUserId =
+            msg.sender.id === parseInt(id) ? msg.receiver.id : msg.sender.id;
+
           if (!convos[otherUserId]) {
             convos[otherUserId] = [];
           }
-          convos[otherUserId].push(msg);
+          convos[otherUserId].push({
+            id: msg.id,
+            text: msg.content,
+            sender: msg.sender.id ,
+            read: msg.read,
+            timestamp: msg.timestamp,
+          });
+
+          if (
+            !subAdminMap[otherUserId] ||
+            new Date(msg.timestamp) >
+              new Date(subAdminMap[otherUserId].timestamp)
+          ) {
+            subAdminMap[otherUserId] = {
+              lastMessage: msg.content,
+              time: formatMessageTime(msg.timestamp),
+              unread: !msg.read && msg.sender.id !== parseInt(id),
+            };
+          }
         });
+
+        setSubAdmins((prev) =>
+          prev.map((subAdmin) => ({
+            ...subAdmin,
+            lastMessage: subAdminMap[subAdmin.id]?.lastMessage || "",
+            time: subAdminMap[subAdmin.id]?.time || "",
+            unread: subAdminMap[subAdmin.id]?.unread || false,
+          }))
+        );
+
         setConversations(convos);
       })
       .catch((err) => alert(err));
   };
 
-  const [subAdmins, setSubAdmins] = useState([
-    {
-      id: 1,
-      name: "eyob belayneh",
-      avatar: null,
-      lastMessage: "When will the new system update be released?",
-      time: "5 min ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      name: "kidus asrat",
-      avatar: null,
-      lastMessage: "I've completed the vehicle inspections for today",
-      time: "2 hours ago",
-      unread: false,
-    },
-    {
-      id: 3,
-      name: "eden",
-      avatar: null,
-      lastMessage: "Thanks for the information",
-      time: "Yesterday",
-      unread: false,
-    },
-  ])
+  const formatMessageTime = (timestamp) => {
+    const now = new Date();
+    const messageDate = new Date(timestamp);
+    const diffInHours = (now - messageDate) / (1000 * 60 * 60);
 
-  const [selectedSubAdmin, setSelectedSubAdmin] = useState(null)
-  const [messageText, setMessageText] = useState("")
-  const [conversations, setConversations] = useState({
-    1: [
-      { id: 1, text: "Hello, I have a question about the system update", time: "5:30 PM", sender: 1 },
-      { id: 2, text: "Sure, what would you like to know?", time: "5:32 PM", sender: "admin" },
-      { id: 3, text: "When will the new system update be released?", time: "5:33 PM", sender: 1 },
-    ],
-    2: [
-      { id: 1, text: "I've completed all vehicle inspections for today", time: "3:15 PM", sender: 2 },
-      { id: 2, text: "Great job! Any issues to report?", time: "3:20 PM", sender: "admin" },
-      { id: 3, text: "No issues, everything went smoothly", time: "3:22 PM", sender: 2 },
-      { id: 4, text: "I've completed the vehicle inspections for today", time: "4:45 PM", sender: 2 },
-    ],
-    3: [
-      { id: 1, text: "Welcome to the team, Emily!", time: "Yesterday, 10:00 AM", sender: "admin" },
-      { id: 2, text: "Thank you! I'm excited to join", time: "Yesterday, 10:05 AM", sender: 3 },
-      { id: 3, text: "Let me know if you need any help getting started", time: "Yesterday, 10:10 AM", sender: "admin" },
-      { id: 4, text: "Thanks for the information", time: "Yesterday, 2:30 PM", sender: 3 },
-    ],
-  })
+    if (diffInHours < 24) {
+      return messageDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } else if (diffInHours < 48) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString([], {
+        month: "short",
+        day: "numeric",
+      });
+    }
+  };
 
-  const unreadNotificationsCount = notifications.filter((n) => !n.read).length
-  const unreadMessagesCount = subAdmins.filter((sa) => sa.unread).length
-  const totalUnreadCount = unreadNotificationsCount + unreadMessagesCount
+  const unreadNotificationsCount = notifications.filter((n) => !n.read).length;
+  const unreadMessagesCount = subAdmins.filter((sa) => sa.unread).length;
+  const totalUnreadCount = unreadNotificationsCount + unreadMessagesCount;
 
   const toggleDropdown = () => {
-    setShowDropdown(!showDropdown)
+    setShowDropdown(!showDropdown);
     if (selectedSubAdmin) {
-      setSelectedSubAdmin(null)
+      setSelectedSubAdmin(null);
     }
-  }
+  };
 
   const handleMarkAsRead = (id) => {
-    try {
-      const res =  api.put(`api/ad_notifs/${id}`, {
-        read : true
-      });
-      if (res.status === 201) {
-        setNotifications(
-          notifications.map((notification) => (notification.id === id ? { ...notification, read: true } : notification)),
-        )
-      }
-    } catch (error) {
-      alert(error);
-    } finally {
-    }
-  
-  }
+    api
+      .put(`api/ad_notifs/${id}`, { read: true })
+      .then((res) => {
+        if (res.status === 200) {
+          setNotifications(
+            notifications.map((notification) =>
+              notification.id === id
+                ? { ...notification, read: true }
+                : notification
+            )
+          );
+        }
+      })
+      .catch((err) => alert(err));
+  };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })))
-  }
+    api
+      .put(`api/ad_notifs/mark_all_read/`, { user_id: id })
+      .then((res) => {
+        if (res.status === 200) {
+          setNotifications(notifications.map((n) => ({ ...n, read: true })));
+        }
+      })
+      .catch((err) => alert(err));
+  };
 
   const selectSubAdmin = (id) => {
-    setSelectedSubAdmin(id)
-    // Mark messages as read when conversation is opened
-    setSubAdmins(subAdmins.map((sa) => (sa.id === id ? { ...sa, unread: false } : sa)))
-  }
+    setSelectedSubAdmin(id);
+
+    if (conversations[id]) {
+      const unreadMessages = conversations[id].filter(
+        (msg) => !msg.read && msg.sender !== id
+      );
+      if (unreadMessages.length > 0) {
+        const messageIds = unreadMessages.map((msg) => msg.id);
+        api
+          .put(`api/messages/mark_read/`, { message_ids: messageIds })
+          .then(() => {
+            // Update local state
+            setConversations((prev) => ({
+              ...prev,
+              [id]: prev[id].map((msg) =>
+                messageIds.includes(msg.id) ? { ...msg, read: false  } : msg
+              ),
+            }));
+
+            // Update subAdmin unread status
+            setSubAdmins((prev) =>
+              prev.map((sa) => (sa.id === id ? { ...sa, unread: false } : sa))
+            );
+          })
+          .catch((err) => console.error(err));
+      }
+    }
+  };
 
   const sendMessage = () => {
-    if (!messageText.trim() || !selectedSubAdmin) return
+    if (!messageText.trim() || !selectedSubAdmin) return;
 
     const newMessage = {
-      id: conversations[selectedSubAdmin].length + 1,
-      text: messageText,
-      time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-      sender: "admin",
-    }
+      sender: parseInt(id),
+      receiver: selectedSubAdmin,
+      content: messageText,
+    };
 
-    setConversations({
-      ...conversations,
-      [selectedSubAdmin]: [...conversations[selectedSubAdmin], newMessage],
-    })
+    api
+      .post(`api/messages/`, newMessage)
+      .then((res) => res.data)
+      .then((data) => {
+        const formattedMessage = {
+          id: data.id,
+          text: data.content,
+          time: new Date(data.timestamp).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          sender: "admin",
+          read: true,
+          timestamp: data.timestamp,
+        };
 
-    setMessageText("")
-  }
+        setConversations((prev) => ({
+          ...prev,
+          [selectedSubAdmin]: [
+            ...(prev[selectedSubAdmin] || []),
+            formattedMessage,
+          ],
+        }));
 
+        // Update last message in subAdmins
+        setSubAdmins((prev) =>
+          prev.map((sa) =>
+            sa.id === selectedSubAdmin
+              ? {
+                  ...sa,
+                  lastMessage: data.content,
+                  time: formatMessageTime(data.timestamp),
+                }
+              : sa
+          )
+        );
+
+        setMessageText("");
+      })
+      .catch((err) => alert(err));
+  };
+
+  // ... rest of your component (JSX and styles) remains the same ...
   return (
     <div className="notification-bell-container">
       <button
-        className={`notification-bell ${totalUnreadCount > 0 ? "has-notifications" : ""}`}
+        className={`notification-bell ${
+          totalUnreadCount > 0 ? "has-notifications" : ""
+        }`}
         onClick={toggleDropdown}
         aria-label="Notifications"
       >
         <span className="bell-icon">🔔</span>
-        {totalUnreadCount > 0 && <span className="notification-badge">{totalUnreadCount}</span>}
+        {totalUnreadCount > 0 && (
+          <span className="notification-badge">{totalUnreadCount}</span>
+        )}
       </button>
 
       {showDropdown && (
@@ -179,26 +268,41 @@ const NotificationBell = () => {
               <div className="notification-header">
                 <div className="tabs">
                   <button
-                    className={`tab ${activeTab === "notifications" ? "active" : ""}`}
+                    className={`tab ${
+                      activeTab === "notifications" ? "active" : ""
+                    }`}
                     onClick={() => setActiveTab("notifications")}
                   >
                     Notifications
-                    {unreadNotificationsCount > 0 && <span className="tab-badge">{unreadNotificationsCount}</span>}
+                    {unreadNotificationsCount > 0 && (
+                      <span className="tab-badge">
+                        {unreadNotificationsCount}
+                      </span>
+                    )}
                   </button>
+                  {isSubAdmin ? (
                   <button
-                    className={`tab ${activeTab === "messages" ? "active" : ""}`}
+                    className={`tab ${
+                      activeTab === "messages" ? "active" : ""
+                    }`}
                     onClick={() => setActiveTab("messages")}
                   >
                     Messages
-                    {unreadMessagesCount > 0 && <span className="tab-badge">{unreadMessagesCount}</span>}
-                  </button>
+                    {unreadMessagesCount > 0 && (
+                      <span className="tab-badge">{unreadMessagesCount}</span>
+                    )}
+                  </button>):("")}
                 </div>
 
-                {activeTab === "notifications" && unreadNotificationsCount > 0 && (
-                  <button className="mark-all-read" onClick={handleMarkAllAsRead}>
-                    Mark all as read
-                  </button>
-                )}
+                {activeTab === "notifications" &&
+                  unreadNotificationsCount > 0 && (
+                    <button
+                      className="mark-all-read"
+                      onClick={handleMarkAllAsRead}
+                    >
+                      Mark all as read
+                    </button>
+                  )}
               </div>
 
               <div className="notification-body">
@@ -221,22 +325,33 @@ const NotificationBell = () => {
                     {subAdmins.map((subAdmin) => (
                       <div
                         key={subAdmin.id}
-                        className={`sub-admin-item ${subAdmin.unread ? "unread" : ""}`}
+                        className={`sub-admin-item ${
+                          subAdmin.unread ? "unread" : ""
+                        }`}
                         onClick={() => selectSubAdmin(subAdmin.id)}
                       >
                         <div className="sub-admin-avatar">
                           {subAdmin.avatar ? (
-                            <img src={subAdmin.avatar || "/placeholder.svg"} alt={subAdmin.name} />
+                            <img
+                              src={subAdmin.avatar || "/placeholder.svg"}
+                              alt={subAdmin.name}
+                            />
                           ) : (
-                            <div className="avatar-placeholder">{subAdmin.name.charAt(0)}</div>
+                            <div className="avatar-placeholder">
+                              {subAdmin.name.charAt(0)}
+                            </div>
                           )}
                         </div>
                         <div className="sub-admin-info">
                           <div className="sub-admin-name">{subAdmin.name}</div>
-                          <div className="sub-admin-message">{subAdmin.lastMessage}</div>
+                          <div className="sub-admin-message">
+                            {subAdmin.lastMessage}
+                          </div>
                         </div>
                         <div className="sub-admin-time">{subAdmin.time}</div>
-                        {subAdmin.unread && <div className="unread-indicator"></div>}
+                        {subAdmin.unread && (
+                          <div className="unread-indicator"></div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -246,40 +361,57 @@ const NotificationBell = () => {
               </div>
 
               <div className="notification-footer">
-                <a href="#" className="view-all">
-                  {activeTab === "notifications" ? "View all notifications" : "View all messages"}
+                <a href="/setting" className="view-all">
+                  {activeTab === "notifications"
+                    ? "View all notifications"
+                    : "View all messages"}
                 </a>
               </div>
             </>
           ) : (
             <div className="message-view">
-              <div className="message-header">
-                <button className="back-button" onClick={() => setSelectedSubAdmin(null)}>
-                  ←
-                </button>
-                <div className="message-recipient">{subAdmins.find((sa) => sa.id === selectedSubAdmin)?.name}</div>
-              </div>
-
-              <div className="message-body">
-                {conversations[selectedSubAdmin].map((message) => (
-                  <MessageItem key={message.id} message={message} isCurrentUser={message.sender === "admin"} />
-                ))}
-              </div>
-
-              <div className="message-footer">
-                <input
-                  type="text"
-                  className="message-input"
-                  placeholder="Type a message..."
-                  value={messageText}
-                  onChange={(e) => setMessageText(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-                />
-                <button className="send-button" onClick={sendMessage}>
-                  Send
-                </button>
-              </div>
+    <div className="message-header">
+      <button className="back-button" onClick={() => setSelectedSubAdmin(null)}>
+        ←
+      </button>
+      <div className="message-recipient">
+        {subAdmins.find((sa) => sa.id === selectedSubAdmin)?.name}
+      </div>
+    </div>
+      <div className="message-body">
+      {conversations[selectedSubAdmin]?.length > 0 ? (
+        conversations[selectedSubAdmin].map((message) => (
+          <div
+            key={message.id}
+            className={`message-bubble ${
+              message.sender === "admin" ? "sent" : "received"
+            }`}
+          >
+            <div className="message-content">{message.text}</div>
+            <div className="message-time">
+              {formatMessageTime(message.timestamp)}
             </div>
+          </div>
+        ))
+      ) : (
+        <div className="empty-conversation">No messages yet</div>
+      )}
+    </div>
+
+    <div className="message-footer">
+      <input
+        type="text"
+        className="message-input"
+        placeholder="Type a message..."
+        value={messageText}
+        onChange={(e) => setMessageText(e.target.value)}
+        onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+      />
+      <button className="send-button" onClick={sendMessage}>
+        Send
+      </button>
+    </div>
+  </div>
           )}
         </div>
       )}
@@ -288,7 +420,7 @@ const NotificationBell = () => {
         .notification-bell-container {
           position: relative;
         }
-        
+
         .notification-bell {
           background: none;
           border: none;
@@ -302,32 +434,50 @@ const NotificationBell = () => {
           position: relative;
           transition: background-color 0.2s;
         }
-        
+
         .notification-bell:hover {
           background-color: var(--hover-bg);
         }
-        
+
         .bell-icon {
           font-size: 1.2rem;
         }
-        
+
         .has-notifications .bell-icon {
           animation: bell-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
           animation-iteration-count: 1;
         }
-        
+
         @keyframes bell-shake {
-          0% { transform: rotate(0); }
-          15% { transform: rotate(5deg); }
-          30% { transform: rotate(-5deg); }
-          45% { transform: rotate(4deg); }
-          60% { transform: rotate(-4deg); }
-          75% { transform: rotate(2deg); }
-          85% { transform: rotate(-2deg); }
-          92% { transform: rotate(1deg); }
-          100% { transform: rotate(0); }
+          0% {
+            transform: rotate(0);
+          }
+          15% {
+            transform: rotate(5deg);
+          }
+          30% {
+            transform: rotate(-5deg);
+          }
+          45% {
+            transform: rotate(4deg);
+          }
+          60% {
+            transform: rotate(-4deg);
+          }
+          75% {
+            transform: rotate(2deg);
+          }
+          85% {
+            transform: rotate(-2deg);
+          }
+          92% {
+            transform: rotate(1deg);
+          }
+          100% {
+            transform: rotate(0);
+          }
         }
-        
+
         .notification-badge {
           position: absolute;
           top: 0;
@@ -343,7 +493,7 @@ const NotificationBell = () => {
           justify-content: center;
           font-weight: bold;
         }
-        
+
         .notification-dropdown {
           position: absolute;
           top: 100%;
@@ -359,7 +509,7 @@ const NotificationBell = () => {
           flex-direction: column;
           max-height: 500px;
         }
-        
+
         .notification-header {
           padding: 15px;
           border-bottom: 1px solid var(--border-color);
@@ -367,12 +517,12 @@ const NotificationBell = () => {
           justify-content: space-between;
           align-items: center;
         }
-        
+
         .tabs {
           display: flex;
           gap: 10px;
         }
-        
+
         .tab {
           background: none;
           border: none;
@@ -383,11 +533,11 @@ const NotificationBell = () => {
           position: relative;
           transition: color 0.2s;
         }
-        
+
         .tab.active {
           color: var(--primary-color);
         }
-        
+
         .tab-badge {
           position: absolute;
           top: -5px;
@@ -402,7 +552,7 @@ const NotificationBell = () => {
           align-items: center;
           justify-content: center;
         }
-        
+
         .mark-all-read {
           background: none;
           border: none;
@@ -410,35 +560,35 @@ const NotificationBell = () => {
           font-size: 0.8rem;
           cursor: pointer;
         }
-        
+
         .notification-body {
           flex: 1;
           overflow-y: auto;
         }
-        
+
         .empty-state {
           padding: 30px;
           text-align: center;
           color: var(--text-light);
         }
-        
+
         .notification-footer {
           padding: 10px 15px;
           border-top: 1px solid var(--border-color);
           text-align: center;
         }
-        
+
         .view-all {
           color: var(--primary-color);
           text-decoration: none;
           font-size: 0.9rem;
         }
-        
+
         .sub-admin-list {
           display: flex;
           flex-direction: column;
         }
-        
+
         .sub-admin-item {
           display: flex;
           align-items: center;
@@ -448,15 +598,15 @@ const NotificationBell = () => {
           position: relative;
           transition: background-color 0.2s;
         }
-        
+
         .sub-admin-item:hover {
           background-color: var(--hover-bg);
         }
-        
+
         .sub-admin-item.unread {
           background-color: var(--unread-bg);
         }
-        
+
         .sub-admin-avatar {
           width: 40px;
           height: 40px;
@@ -465,13 +615,13 @@ const NotificationBell = () => {
           margin-right: 10px;
           flex-shrink: 0;
         }
-        
+
         .sub-admin-avatar img {
           width: 100%;
           height: 100%;
           object-fit: cover;
         }
-        
+
         .avatar-placeholder {
           width: 100%;
           height: 100%;
@@ -482,17 +632,17 @@ const NotificationBell = () => {
           color: white;
           font-weight: bold;
         }
-        
+
         .sub-admin-info {
           flex: 1;
           min-width: 0;
         }
-        
+
         .sub-admin-name {
           font-weight: 600;
           margin-bottom: 3px;
         }
-        
+
         .sub-admin-message {
           font-size: 0.85rem;
           color: var(--text-secondary);
@@ -500,13 +650,13 @@ const NotificationBell = () => {
           overflow: hidden;
           text-overflow: ellipsis;
         }
-        
+
         .sub-admin-time {
           font-size: 0.75rem;
           color: var(--text-light);
           margin-left: 10px;
         }
-        
+
         .unread-indicator {
           width: 8px;
           height: 8px;
@@ -517,21 +667,21 @@ const NotificationBell = () => {
           right: 15px;
           transform: translateY(-50%);
         }
-        
+
         .message-view {
           display: flex;
           flex-direction: column;
           height: 100%;
           max-height: 500px;
         }
-        
+
         .message-header {
           padding: 15px;
           border-bottom: 1px solid var(--border-color);
           display: flex;
           align-items: center;
         }
-        
+
         .back-button {
           background: none;
           border: none;
@@ -540,11 +690,11 @@ const NotificationBell = () => {
           margin-right: 10px;
           color: var(--text-primary);
         }
-        
+
         .message-recipient {
           font-weight: 600;
         }
-        
+
         .message-body {
           flex: 1;
           overflow-y: auto;
@@ -552,14 +702,14 @@ const NotificationBell = () => {
           display: flex;
           flex-direction: column;
         }
-        
+
         .message-footer {
           padding: 10px 15px;
           border-top: 1px solid var(--border-color);
           display: flex;
           gap: 10px;
         }
-        
+
         .message-input {
           flex: 1;
           padding: 8px 12px;
@@ -569,11 +719,11 @@ const NotificationBell = () => {
           background-color: var(--input-bg);
           color: var(--text-primary);
         }
-        
+
         .message-input:focus {
           border-color: var(--primary-color);
         }
-        
+
         .send-button {
           background-color: var(--primary-color);
           color: white;
@@ -583,36 +733,35 @@ const NotificationBell = () => {
           cursor: pointer;
           font-weight: 500;
         }
-        
+
         .send-button:hover {
           background-color: var(--primary-hover);
         }
-        
+
         @media (max-width: 576px) {
           .notification-dropdown {
             width: 300px;
             right: -100%;
           }
         }
-        
+
         @media (max-width: 480px) {
           .notification-dropdown {
             width: 280px;
             right: -120%;
           }
-          
+
           .notification-header {
             padding: 10px;
           }
-          
+
           .mark-all-read {
             font-size: 0.7rem;
           }
         }
       `}</style>
     </div>
-  )
-}
+  );
+};
 
-export default NotificationBell
-
+export default NotificationBell;

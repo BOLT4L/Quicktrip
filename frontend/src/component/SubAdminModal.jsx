@@ -12,10 +12,11 @@ const SubAdminModal = ({ onClose, onSave }) => {
   const [selectedbranch , setselectedBranch] = useState(null)
   const [selectedUser , setselectedUser] = useState(null)
   const [message, setMessage] = useState({ type: "", text: "" })
+  const [searchterm ,setSearchTerm] = useState("")
   
   useEffect(()=>{
     getBranch()
-    
+  
   },[])
   const getUser = () => {
         
@@ -72,7 +73,7 @@ const SubAdminModal = ({ onClose, onSave }) => {
         user_type : "s",
         phone_number : phone_number,
         branch : selectedbranch,
-        password : " ",
+        password : "1234",
         employee ,
         nid : selectedUser,
       });
@@ -81,7 +82,9 @@ const SubAdminModal = ({ onClose, onSave }) => {
           type: "Registered Successfully",
           text: "Registered   successfully!",
         })
-         window.location.hrtef = `/subadmin`;
+        onSave?.();
+        onClose();
+        window.location.href = `/subadmin`;
       }
     } catch (error) {
       alert(error);

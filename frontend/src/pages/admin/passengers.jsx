@@ -14,8 +14,6 @@ export default function Passengers() {
   const [selectedTrip, setSelectedTrip] = useState(null)
   const [showReceiptModal, setShowReceiptModal] = useState(false)
   const [showDriverContactModal, setShowDriverContactModal] = useState(false)
-
-  // Mock data for passengers
   const [passengers, setPassengers] = useState([])
 
  
@@ -34,7 +32,7 @@ export default function Passengers() {
     if (filterType === "name") {
       return passenger.nid.Fname.toLowerCase().includes(searchTerm.toLowerCase())
     } else if (filterType === "phone") {
-      return passenger.phone_number.includes(searchTerm)
+      return passenger.phone_number === searchTerm
     } else if (filterType === "nationalId") {
       return passenger.nid.FAN.toLowerCase().includes(searchTerm.toLowerCase())
     }
@@ -99,7 +97,7 @@ export default function Passengers() {
             <div className="filter-container">
               <select className="filter-dropdown" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
                 <option value="name">Name</option>
-                <option value="phone">Phone</option>
+                
                 <option value="nationalId">National ID</option>
               </select>
             </div>
@@ -113,7 +111,7 @@ export default function Passengers() {
                   className={`passenger-list-item ${selectedPassenger?.id === passenger.id ? "selected" : ""}`}
                   onClick={() => handlePassengerSelect(passenger)}
                 >
-                  <div className="passenger-name">{passenger.nid.Fname}</div>
+                  <div className="passenger-name">{passenger.nid.Fname} {passenger.nid.Lname}</div>
                   <div className="passenger-id">ID: {passenger.nid.FAN}</div>
                   <div className="passenger-trips">{passenger.travel_history.length} trips</div>
                 </div>
@@ -145,13 +143,9 @@ export default function Passengers() {
                           <div className="detail-label">Phone</div>
                           <div className="detail-value">{selectedPassenger.phone_number}</div>
                         </div>
-                        <div className="detail-item">
-                          <div className="detail-label">Email</div>
-                          <div className="detail-value">email</div>
-                        </div>
-                        <div className="detail-item">
+                                                <div className="detail-item">
                           <div className="detail-label">Address</div>
-                          <div className="detail-value">Adama</div>
+                          <div className="detail-value">{selectedPassenger.nid.Address}</div>
                         </div>
                         <div className="detail-item">
                           <div className="detail-label">Registered Date</div>
@@ -184,8 +178,8 @@ export default function Passengers() {
                               {selectedPassenger.travel_history.map((trip) => (
                                 <tr key={trip.id}>
                                   <td>{new Date(trip.time).toLocaleDateString()}</td>
-                                  <td>{trip.ticket.route.first_destination.name}</td>
-                                  <td>{trip.ticket.route.last_destination.name}</td>
+                                  <td>{trip.ticket.route.first_destination?.name}</td>
+                                  <td>{trip.ticket.route.last_destination?.name}</td>
                                   <td>${trip.payment.amount}</td>
                                   <td>
                                     <button className="btn btn-sm btn-primary" onClick={() => handleTripSelect(trip)}>
@@ -244,7 +238,7 @@ export default function Passengers() {
                           <div className="info-icon">🚗</div>
                           <div className="info-content">
                             <div className="info-label">Vehicle</div>
-                            <div className="info-value">{selectedTrip.vehicle.name}</div>
+                            <div className="info-value">{selectedTrip.vehicle.name} {selectedTrip.vehicle.Model}</div>
                           </div>
                         </div>
                         <div className="trip-info-item">

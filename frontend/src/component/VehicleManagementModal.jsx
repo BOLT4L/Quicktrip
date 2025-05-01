@@ -483,9 +483,7 @@ const VehicleManagementModal = ({ mode = "edit", vehicleId , onClose, onSave, on
       </div>
 
       <style jsx>{`
-        .modal {
-          background: white;
-          border-radius: 8px;
+        .modal {          border-radius: 8px;
           width: 90%;
           max-width: 800px;
           max-height: 90vh;
