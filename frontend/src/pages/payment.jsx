@@ -1,9 +1,9 @@
 
 import { useState, useContext, useEffect } from "react"
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
-import api from "../../api"
-import PaymentReceiptGenerator from "../../component/PaymentRecieptGenerator"
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
+import api from "../api"
+import PaymentReceiptGenerator from "../component/PaymentRecieptGenerator"
 export default function Payments() {
  const [activeTab, setActiveTab] = useState("p")
   const [searchTerm, setSearchTerm] = useState("")

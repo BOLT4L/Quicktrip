@@ -1,8 +1,8 @@
 import { useState, useContext, useEffect } from "react"
-import api from '../../api';
-import { USER_ROLE } from "../../constants";
-import Sidebar from "../../component/sidebar";
-import Header from "../../component/Header";
+import api from '../api';
+import { USER_ROLE } from "../constants";
+import Sidebar from "../component/sidebar";
+import Header from "../component/Header";
 
 export default function TicketPurchase() {
   const [showTicketModal, setShowTicketModal] = useState(false)

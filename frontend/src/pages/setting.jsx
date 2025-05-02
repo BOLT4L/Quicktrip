@@ -1,10 +1,10 @@
 
 import { useState, useContext, useEffect } from "react"
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
-import api from "../../api"
-import { USER_ID } from "../../constants"
-import { USER_ROLE } from "../../constants"
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
+import api from "../api"
+import { USER_ID } from "../constants"
+import { USER_ROLE } from "../constants"
 export default function Settings() {
   const user_role = localStorage.getItem(USER_ROLE)
   const isAdmin = user_role === "a"

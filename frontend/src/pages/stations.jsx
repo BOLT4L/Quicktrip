@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react"
 import { useParams } from "react-router-dom"
-import Topbar from "../../component/topbar"
-import api from "../../api"
-import'./style/home.css'
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
-import StationMap from "../../component/StationMap"
-import BranchRegistrationModal from "../../component/BranchregistrationModal"
-import RouteRegisterModal from "../../component/RouteRegistrationModal"
+import Topbar from "../component/topbar"
+import api from "../api"
+
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
+import StationMap from "../component/StationMap"
+import BranchRegistrationModal from "../component/BranchregistrationModal"
+import RouteRegisterModal from "../component/RouteRegistrationModal"
 
 function Home(){
 
@@ -253,7 +253,7 @@ const getManger = (sub, bid) => {
                 <div className="detail-card">
                   <div className="detail-icon revenue">💰</div>
                   <div className="detail-content">
-                    <div className="detail-value">${countRevenuesByBranch(report, selectedStation.id)}</div>
+                    <div className="detail-value">{countRevenuesByBranch(report, selectedStation.id)} ETB</div>
                     <div className="detail-label">Total Revenue</div>
                   </div>
                 </div>

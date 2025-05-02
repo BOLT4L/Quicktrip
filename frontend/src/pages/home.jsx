@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
-import api from "../../api";
-import { USER_ID } from '../../constants';
-import Sidebar from "../../component/sidebar";
-import DashboardStats from "../../component/DashboardStats";
-import RevenueChart from "../../component/RevenueChart";
-import PassengerChart from "../../component/PassengerChart";
-import RecentVehicles from "../../component/RecentVehicles";
-import Header from "../../component/Header";
+import api from "../api";
+import { USER_ID } from '../constants';
+import Sidebar from "../component/sidebar";
+import DashboardStats from "../component/DashboardStats";
+import RevenueChart from "../component/RevenueChart";
+import PassengerChart from "../component/PassengerChart";
+import RecentVehicles from "../component/RecentVehicles";
+import Header from "../component/Header";
 
 function Report() {
   const [report, setReport] = useState([]);

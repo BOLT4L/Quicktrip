@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import api from '../../api';
+import api from '../api';
 
 const fixLeafletIcons = () => {
     delete L.Icon.Default.prototype._getIconUrl;

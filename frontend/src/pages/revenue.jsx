@@ -1,10 +1,10 @@
 import { useState, useEffect} from "react"
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
-import ReportChart from "../../component/ReportChart"
-import ReceiptGenerator from "../../component/ReceiptGenerator"
-import RevenueChart from "../../component/RevenueChart"
-import api from "../../api"
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
+import ReportChart from "../component/ReportChart"
+import ReceiptGenerator from "../component/ReceiptGenerator"
+import RevenueChart from "../component/RevenueChart"
+import api from "../api"
 import { saveAs } from 'file-saver';
 export default function Revenue() {
   

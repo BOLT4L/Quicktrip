@@ -1,13 +1,13 @@
 
 
 import { useState, useContext, useEffect } from "react"
-import api from '../../api';
-import { USER_ROLE } from "../../constants";
-import Sidebar from "../../component/sidebar";
-import Header from "../../component/Header";
-import VehicleRegistrationModal from "../../component/VehicleRegistrationModal";
-import DriverRegistrationModal from "../../component/DriverRegistrationModal";
-import VehicleManagementModal from "../../component/VehicleManagementModal";
+import api from '../api';
+import { USER_ROLE } from "../constants";
+import Sidebar from "../component/sidebar";
+import Header from "../component/Header";
+import VehicleRegistrationModal from "../component/VehicleRegistrationModal";
+import DriverRegistrationModal from "../component/DriverRegistrationModal";
+import VehicleManagementModal from "../component/VehicleManagementModal";
 export default function Vehicles() {
   
   const [showVehicleModal, setShowVehicleModal] = useState(false)

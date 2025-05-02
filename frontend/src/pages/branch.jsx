@@ -1,7 +1,7 @@
 import { useParams } from "react-router-dom";
-import api from "../../api";
+import api from "../api";
 import { useEffect, useState } from "react";
-import Topbar from "../../component/topbar";
+import Topbar from "../component/topbar";
 function Branch() {
 
   useEffect(()=>{

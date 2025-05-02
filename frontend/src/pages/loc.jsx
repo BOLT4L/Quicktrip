@@ -1,7 +1,7 @@
 
 import { useState, useContext, useEffect, useRef } from "react"
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
 
 
 export default function Loc() {

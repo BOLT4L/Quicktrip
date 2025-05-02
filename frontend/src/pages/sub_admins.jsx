@@ -1,10 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import api from "../../api";
-import Sidebar from "../../component/sidebar";
-import Header from "../../component/Header";
-import SubAdminModal from "../../component/SubAdminModal";
-import StationMap from "../../component/StationMap";
+import api from "../api";
+import Sidebar from "../component/sidebar";
+import Header from "../component/Header";
+import SubAdminModal from "../component/SubAdminModal";
+import StationMap from "../component/StationMap";
 function Sub_admin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

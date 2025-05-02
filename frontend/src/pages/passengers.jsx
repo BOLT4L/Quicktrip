@@ -1,10 +1,10 @@
 
 import { useState, useContext, useEffect } from "react"
-import api from "../../api"
-import TripReceiptGenerator from "../../component/TripReceiptGenerator"
-import DriverContactModal from "../../component/DriverContactModel"
-import Sidebar from "../../component/sidebar"
-import Header from "../../component/Header"
+import api from "../api"
+import TripReceiptGenerator from "../component/TripReceiptGenerator"
+import DriverContactModal from "../component/DriverContactModel"
+import Sidebar from "../component/sidebar"
+import Header from "../component/Header"
 export default function Passengers() {
 
   const [searchTerm, setSearchTerm] = useState("")

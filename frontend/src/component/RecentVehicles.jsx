@@ -9,8 +9,8 @@ const RecentVehicles = ({vehicles}) => {
               <th>Driver</th>
               <th>Plate Number</th>
               <th>Vehicle</th>
-              <th>Year</th>
-              <th>Registered Date</th>
+              <th>Driver Joined Date</th>
+              <th>Vehicel Registered Date</th>
           
             </tr>
           </thead>
@@ -23,7 +23,7 @@ const RecentVehicles = ({vehicles}) => {
                   {vehicle.name} {vehicle.Model}
                 </td>
                 <td>{vehicle.user.date_joined}</td>
-                <td>{new Date(vehicle.registeredAt).toLocaleDateString()}</td>
+                <td>{new Date(vehicle.last_updated).toLocaleDateString()}</td>
                
               </tr>
             ))}
