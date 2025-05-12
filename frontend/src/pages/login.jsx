@@ -9,7 +9,7 @@ function Login() {
     const [phone_number, setPhonenumber] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
-
+    const [message, setMessage] = useState({ type: "", text: "" })
 
 
     const handleSubmit = async (e) =>{
@@ -30,11 +30,16 @@ function Login() {
           localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
           console.log(role)
           window.location.href = '/home';
-         
+          
 
       }
       catch (error) {
-          alert(error)
+        
+        setMessage({ 
+          type: 'error',
+          text: String(error),
+         
+        });
       }
       finally{
           setLoading(false)
@@ -53,9 +58,14 @@ function Login() {
         </div>
 
      
-
+       
         <form onSubmit={handleSubmit}>
-          
+        {message.text && (
+            <div className={`alert ${message.type === "success" ? "alert-success" : "alert-error"}`}>
+              {message.text}
+            </div>
+          )}
+
           <div className="form-group">
             <label htmlFor="email" className="form-label">
               Phone number
@@ -141,7 +151,21 @@ function Login() {
           background-color: rgba(0, 0, 0, 0.6);
           z-index: -1;
         }
-
+       .alert {
+          padding: 10px 15px;
+          margin-bottom: 20px;
+          border-radius: 4px;
+        }
+        
+        .alert-success {
+          background-color: #d4edda;
+          color: #155724;
+        }
+        
+        .alert-error {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
         .login-card {
           width: 100%;
           max-width: 450px;

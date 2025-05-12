@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react"
-import { useParams } from "react-router-dom"
-import Topbar from "../component/topbar"
+ 
 import api from "../api"
 
 import Sidebar from "../component/sidebar"
@@ -40,7 +39,7 @@ function Home(){
         setReport(data);
         
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
    const getPassenger = () => {
     api
@@ -50,7 +49,7 @@ function Home(){
         setPassengers(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   const getVehicle = () => {
     api
@@ -72,7 +71,7 @@ function Home(){
         setSubAdmins(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   
   const countPassengersByBranch = (passengerData ,bid ) => {
@@ -170,7 +169,7 @@ const getManger = (sub, bid) => {
         setBranch(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
    return  <>
     <div className="stations-page">

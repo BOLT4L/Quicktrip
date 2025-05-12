@@ -44,10 +44,7 @@ class nidSerializer(serializers.ModelSerializer):
     class Meta :
         model = nidUser
         fields = "__all__"
-class locationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = locations
-        fields = "__all__"
+
 
 class employeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -62,31 +59,88 @@ class levelSerializer(serializers.ModelSerializer):
 
 class addtraveller(serializers.ModelSerializer):
     class Meta:
-        model = user
+        model = User
         fields = ['id','user_type','phone_number','date_joined','branch','nid']
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = locations
+        fields = "__all__"
 
 class branchSerializer(serializers.ModelSerializer):
-    location = locationSerializer(required = False)
+    location = LocationSerializer(required=False)
     
-    class Meta :
-        model = branch
-        fields = ['id','location','address','type','name','status']
+    class Meta:
+        model = Branch
+        fields = ['id', 'location', 'address', 'type', 'name', 'status']
     
     def create(self, validated_data):
-        location_data = validated_data.pop('location')
-        branchs = branch.objects.create(
-              **validated_data
-        )
+        # Safely extract location data (returns None if not provided)
+        location_data = validated_data.pop('location', None)
         
+        # Create branch instance without location first
+        branch = Branch.objects.create(**validated_data)
+        
+        # Handle location if provided
         if location_data:
-            loc =locations.objects.create(**location_data)
-            branchs.location = loc
-            branchs.save()
-      
+            # Check if we're referencing an existing location
+            if 'id' in location_data:
+                try:
+                    location = locations.objects.get(id=location_data['id'])
+                    branch.location = location
+                except locations.DoesNotExist:
+                    raise serializers.ValidationError(
+                        {'location': 'Referenced location does not exist'}
+                    )
+            else:
+                # Create new location instance
+                location = locations.objects.create(**location_data)
+                branch.location = location
+            
+            branch.save()
         
+        return branch
+
+    def update(self, instance, validated_data):
+        location_data = validated_data.pop('location', None)
         
-        return branchs
-    
+        # Update regular fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Handle location update
+        if location_data is not None:
+            if instance.location:
+                # Update existing location
+                if 'id' in location_data:
+                    # Verify the ID matches if provided
+                    if location_data['id'] != instance.location.id:
+                        raise serializers.ValidationError(
+                            {'location': 'Cannot change location ID'}
+                        )
+                    # Update other fields
+                    for attr, value in location_data.items():
+                        if attr != 'id':
+                            setattr(instance.location, attr, value)
+                    instance.location.save()
+                else:
+                    # Update fields without changing ID
+                    for attr, value in location_data.items():
+                        setattr(instance.location, attr, value)
+                    instance.location.save()
+            else:
+                # Create new location if none exists
+                if 'id' in location_data:
+                    try:
+                        instance.location = locations.objects.get(id=location_data['id'])
+                    except locations.DoesNotExist:
+                        raise serializers.ValidationError(
+                            {'location': 'Referenced location does not exist'}
+                        )
+                else:
+                    instance.location = locations.objects.create(**location_data)
+        
+        instance.save()
+        return instance
 
 class credSerializer(serializers.ModelSerializer):
 
@@ -99,57 +153,197 @@ class credSerializer(serializers.ModelSerializer):
         cred = credentials.objects.create(**validated_data)
    
         if user_data:
-             users = user.objects.create(**user_data)
+             users = User.objects.create(**user_data)
              cred.user = users  # Assign via the OneToOneField
              cred.save()
     
         return cred
     
-       
 class userSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
-    location = locationSerializer( required=False)
+    location = LocationSerializer(required=False)
     credentials = credSerializer(required=False)
-    branch = branchSerializer(required = False)
+    
+    # Change to DictField to handle the nested structure
+    branch = serializers.DictField(required=False, write_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'user_type','is_active', 'nid', 'location', 'phone_number','date_joined', 'branch', 'employee', 'credentials']
+        fields = [
+            'id', 'user_type', 'is_active', 'nid', 'location',
+            'phone_number', 'date_joined', 'branch', 'employee', 'credentials'
+        ]
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
-            'branch': {'required': False},
-            'location': {'required': False},
-            'employee': {'required': False},
-            'credentials': {'required': False}
         }
-        
+
+    def validate_branch(self, value):
+        """Custom validation for branch field"""
+        if value is None:
+            return None
+            
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Branch must be an object")
+            
+        branch_id = value.get('id')
+        if not branch_id:
+            raise serializers.ValidationError("Branch ID is required")
+            
+        try:
+            Branch.objects.get(id=branch_id)
+        except Branch.DoesNotExist:
+            raise serializers.ValidationError("Branch with this ID does not exist")
+            
+        return value
+
     def create(self, validated_data):
+        # Extract nested data
         employee_data = validated_data.pop('employee', None)
         credentials_data = validated_data.pop('credentials', None)
+        location_data = validated_data.pop('location', None)
+        branch_data = validated_data.pop('branch', None)
         password = validated_data.pop('password', None)
-              
-        # Create user
-        user = User.objects.create(
-           
-            **validated_data
-        )
         
-        # Set password if provided
-        if password:
-            user.set_password(password)
-            user.save()
-        
-        # Create employee if data provided
-        if employee_data:
-            employee = employeeDetail.objects.create(**employee_data)
-            user.employee = employee
-            user.save()
-        if  credentials_data:
-            credential = credentials.objects.create(**credentials_data)
-            user.credentials = credential
-            user.save()
-        
-        return user
+        try:
+            # Create user first
+            user = User.objects.create(**validated_data)
+            
+            if password:
+                user.set_password(password)
 
+            # Handle branch assignment
+            if branch_data and branch_data.get('id'):
+                user.branch_id = branch_data['id']
+
+            # Handle other relations
+            if employee_data:
+                user.employee = employeeDetail.objects.create(**employee_data)
+            if credentials_data:
+                user.credentials = credentials.objects.create(**credentials_data)
+            if location_data:
+                user.location = locations.objects.create(**location_data)
+
+            user.save()
+            return user
+
+        except Exception as e:
+            if 'user' in locals():
+                user.delete()
+            raise serializers.ValidationError(f"Failed to create user: {str(e)}")
+
+    def to_representation(self, instance):
+        """Convert branch ID to full branch object in response"""
+        representation = super().to_representation(instance)
+        if instance.branch:
+            representation['branch'] = branchSerializer(instance.branch).data
+        return representation
+class EmployeeDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = employeeDetail
+        fields = ['id', 'Fname', 'Lname', 'position']
+class BranchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Branch
+        fields = ['id', 'name', 'address']         
+class UserSerializers(serializers.ModelSerializer):
+    employee = EmployeeDetailSerializer()
+    
+    class Meta:
+        model = User
+        fields = ['id', 'user_type', 'phone_number', 'branch', 'employee']
+        
+    def update(self, instance, validated_data):
+        # Update branch
+        instance.branch = validated_data.get('branch', instance.branch)
+        instance.save()
+        
+        # Update employee position if provided
+        employee_data = validated_data.pop('employee', {})
+        if employee_data and hasattr(instance, 'employee'):
+            employee = instance.employee
+            employee.position = employee_data.get('position', employee.position)
+            employee.save()
+            
+        return instance   
+class usersSerializer(serializers.ModelSerializer):
+    employee = employeSerializer(required=False)
+    location = LocationSerializer(required=False)
+    credentials = credSerializer(required=False)
+    
+    # Change to DictField to handle the nested structure
+    branch = serializers.DictField(required=False, write_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'user_type', 'is_active', 'nid', 'location',
+            'phone_number', 'date_joined', 'branch', 'employee', 'credentials','password'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def validate_branch(self, value):
+        """Custom validation for branch field"""
+        if value is None:
+            return None
+            
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Branch must be an object")
+            
+        branch_id = value.get('id')
+        if not branch_id:
+            raise serializers.ValidationError("Branch ID is required")
+            
+        try:
+            Branch.objects.get(id=branch_id)
+        except Branch.DoesNotExist:
+            raise serializers.ValidationError("Branch with this ID does not exist")
+            
+        return value
+
+    def create(self, validated_data):
+        # Extract nested data
+        employee_data = validated_data.pop('employee', None)
+        credentials_data = validated_data.pop('credentials', None)
+        location_data = validated_data.pop('location', None)
+        branch_data = validated_data.pop('branch', None)
+        password = validated_data.pop('password', None)
+        
+        try:
+            # Create user first
+            user = User.objects.create(**validated_data)
+            
+            if password:
+                user.set_password(password)
+
+            # Handle branch assignment
+            if branch_data and branch_data.get('id'):
+                user.branch_id = branch_data['id']
+
+            # Handle other relations
+            if employee_data:
+                user.employee = employeeDetail.objects.create(**employee_data)
+            if credentials_data:
+                user.credentials = credentials.objects.create(**credentials_data)
+            if location_data:
+                user.location = locations.objects.create(**location_data)
+
+            user.save()
+            return user
+
+        except Exception as e:
+            if 'user' in locals():
+                user.delete()
+            raise serializers.ValidationError(f"Failed to create user: {str(e)}")
+
+    def to_representation(self, instance):
+        """Convert branch ID to full branch object in response"""
+        representation = super().to_representation(instance)
+        if instance.branch:
+            representation['branch'] = branchSerializer(instance.branch).data
+        return representation
+    
 class ExitSlipSerializer(serializers.ModelSerializer):
     vehicle_plate = serializers.CharField(source='vehicle.plate_number')
     vehicle_model = serializers.CharField(source='vehicle.Model')
@@ -169,11 +363,11 @@ class UserSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
     branch = branchSerializer(required=False)
     nid = nidSerializer(read_only=True)
-    location = locationSerializer(read_only=True)
+    location = LocationSerializer(read_only=True)
    
     
     class Meta:
-        model = user
+        model = User
         fields = ['id', 'user_type', 'phone_number', 'date_joined', 'branch', 'employee', 'nid', 'location']
         extra_kwargs = {
             'password': {'write_only': True, 'required': False},
@@ -253,7 +447,7 @@ class vehiclesSerializer(serializers.ModelSerializer):
     user = userSerializer()
     branch = branchSerializer() 
     types = levelSerializer()
-    location = locationSerializer()
+    location = LocationSerializer()
     route = routeSerializer()
     class Meta : 
         model = vehicle
@@ -329,5 +523,5 @@ class UsertravelSerializer(serializers.ModelSerializer):
     nid = nidSerializer()
     
     class Meta :
-        model = user
+        model = User
         fields = ['id','date_joined','employee','phone_number','nid','travel_history']

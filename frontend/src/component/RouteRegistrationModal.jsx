@@ -26,7 +26,7 @@ const handleChanges = (event) => {
         setBranch(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   
   const [errors, setErrors] = useState({})
@@ -66,7 +66,7 @@ const handleChanges = (event) => {
             onClose();
           }
         } catch (error) {
-          alert(error);
+          console.log(error);
         } finally {
         }
       };

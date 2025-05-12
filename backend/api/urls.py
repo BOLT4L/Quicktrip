@@ -5,7 +5,10 @@ from .views import *
 urlpatterns = [
     path('branch/',branchs.as_view(), name="branch" ),
     path('staffs/',Staffs.as_view(), name="staffs" ),
+    path('userss/<int:id>/', UserDetailView.as_view(), name='user-detail'),
+    path('employee-detail/<int:id>/',  EmployeeDetailView.as_view(), name='employee-detail'),
     path('passengers/',usertravel.as_view(), name="passengers" ),
+    path('edit_branch/', BranchsListView.as_view(), name='branch-list'),
     path('driver/',driver.as_view(), name="driver" ),
     path('payments/',payments.as_view(), name="payment" ),
     path('addpayments/',addpayments.as_view(), name="payment" ),
@@ -48,8 +51,7 @@ urlpatterns = [
     path('delete/', delete, name = "delete"),
     path("nid/<int:pn>",phone_number_search.as_view(),name="phone_number search" ),
     path("othercred/",other_cred.as_view(),name="FAN search" ),
-    path('nids/<int:fan>',Fan_search.as_view(),name="FAN search" ),
-     
+    path('nids/<int:fan>',Fan_search.as_view(),name="FAN search" ), 
     path('payment/', payment_form, name='payment_form'),
     path('payment/callback/', payment_callback, name='payment_callback'),
     path('next/', success_page, name='success_page'),

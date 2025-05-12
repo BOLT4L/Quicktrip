@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import user, branch
+from user.models import User, Branch
 from vehicle_management.models import vehicle, type ,route
 from payment.models import payment
 import sys
@@ -18,17 +18,17 @@ class ticket(models.Model):
     Quantity = models.IntegerField(default=1)
     takeoff_time = models.TimeField(null=True)
     takeoff_date = models.DateField(null=True)
-    user = models.ForeignKey(user, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     total_prize = models.DecimalField(max_digits=10 , decimal_places=4 ,default=0)
     
 
 class travelhistory(models.Model):
-    branch = models.ForeignKey(branch, on_delete=models.SET_NULL, null=True)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(payment, on_delete=models.SET_NULL , null= True)
     ticket = models.ForeignKey(ticket, on_delete=models.CASCADE)
     time = models.DateTimeField(auto_now_add=True)
     vehicle = models.ForeignKey(vehicle, on_delete=models.SET_NULL, null=True)
     used = models.BooleanField(default=False)
-    user = models.ForeignKey(user, null=True, on_delete=models.CASCADE, related_name='travel_history'  )
+    user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name='travel_history'  )
     
     

@@ -10,42 +10,78 @@ const PassengerChart = ({ timeRange, passengerHistory }) => {
       values: []
     };
 
-    // Helper function to format dates and group by time range
+    // Helper function to format dates
+    const formatDate = (date, range) => {
+      const d = new Date(date);
+      switch(range) {
+        case 'daily':
+          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        case 'weekly':
+          const weekStart = new Date(d);
+          weekStart.setDate(d.getDate() - d.getDay()); // Start of week (Sunday)
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekStart.getDate() + 6);
+          return `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${weekEnd.toLocaleDateString('en-US', { day: 'numeric' })}`;
+        case 'monthly':
+          return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        case 'yearly':
+          return d.getFullYear().toString();
+        default:
+          return d.toLocaleDateString();
+      }
+    };
+
+    // Helper function to get week key for grouping
+    const getWeekKey = (date) => {
+      const d = new Date(date);
+      const weekStart = new Date(d);
+      weekStart.setDate(d.getDate() - d.getDay()); // Start of week (Sunday)
+      return weekStart.toISOString().split('T')[0]; // YYYY-MM-DD format
+    };
+
+    // Group passenger data by time range
     const groupByTimeRange = () => {
       const groups = {};
 
       passengerHistory?.forEach((trip) => {
-        if (!trip?.ticket ) return;
+        if (!trip?.ticket) return;
 
         const tripDate = new Date(trip.time);
         let key;
+        let dateForSorting;
 
         switch(timeRange) {
           case 'daily':
-            key = tripDate.toLocaleDateString('en-US', { weekday: 'short' });
+            key = formatDate(tripDate, timeRange);
+            dateForSorting = tripDate;
             break;
           case 'weekly':
-            const weekNum = Math.ceil(tripDate.getDate() / 7);
-            key = `Week ${weekNum}`;
+            key = getWeekKey(tripDate);
+            dateForSorting = new Date(key); // Use the week start date for sorting
             break;
           case 'monthly':
-            key = tripDate.toLocaleDateString('en-US', { month: 'short' });
+            key = formatDate(tripDate, timeRange);
+            dateForSorting = new Date(tripDate.getFullYear(), tripDate.getMonth(), 1);
             break;
           case 'yearly':
-            key = tripDate.getFullYear().toString();
+            key = formatDate(tripDate, timeRange);
+            dateForSorting = new Date(tripDate.getFullYear(), 0, 1);
             break;
           default:
-            key = tripDate.toLocaleDateString();
+            key = formatDate(tripDate);
+            dateForSorting = tripDate;
         }
 
         if (!groups[key]) {
-          groups[key] = new Set(); // Using Set to avoid counting duplicate users
+          groups[key] = {
+            users: new Set(), // Using Set to avoid counting duplicate users
+            date: dateForSorting // Store date for sorting
+          };
         }
 
         if (trip?.ticket?.user) {
-          groups[key].add(trip.ticket.user);
-      }
-      
+          groups[key].users.add(trip.ticket.user);
+        }
       });
 
       return groups;
@@ -53,10 +89,20 @@ const PassengerChart = ({ timeRange, passengerHistory }) => {
 
     const groupedPassengers = groupByTimeRange();
 
+    // Convert to array, sort by date, and format labels
+    const sortedGroups = Object.entries(groupedPassengers)
+      .sort((a, b) => a[1].date - b[1].date)
+      .map(([key, data]) => {
+        const label = timeRange === 'weekly' 
+          ? formatDate(data.date, timeRange) 
+          : key;
+        return { label, value: data.users.size };
+      });
+
     // Convert to chart data format
-    Object.entries(groupedPassengers).forEach(([label, userSet]) => {
+    sortedGroups.forEach(({ label, value }) => {
       groupedData.labels.push(label);
-      groupedData.values.push(userSet.size); // Count unique users
+      groupedData.values.push(value);
     });
 
     return groupedData;
@@ -117,8 +163,9 @@ const PassengerChart = ({ timeRange, passengerHistory }) => {
         ctx.fillText(value.toString(), padding - 10, y + 4);
       }
 
-      // Draw x-axis labels
-      ctx.font = "12px Arial";
+      // Draw x-axis labels with adjusted font size for weekly ranges
+      const labelFontSize = timeRange === 'weekly' ? "10px Arial" : "12px Arial";
+      ctx.font = labelFontSize;
       ctx.fillStyle = "#6c757d";
       ctx.textAlign = "center";
 

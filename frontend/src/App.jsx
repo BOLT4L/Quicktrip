@@ -14,6 +14,7 @@ import Settings from "./pages/setting";
 import Vehicles from "./pages/vehicles";
 import Payments from "./pages/payment";
 import TicketPurchase from "./pages/ticket";
+import Authpro from "./pages/authpro";
 function Logout() {
   localStorage.clear();
   return <Navigate to="/login" />;
@@ -44,8 +45,10 @@ function App() {
         <Route
           path="/home/"
           element={
-           
-              <Report />
+           <Authpro>
+             <Report />
+           </Authpro>
+             
           }
         />
          <Route

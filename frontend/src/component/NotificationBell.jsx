@@ -30,7 +30,7 @@ const NotificationBell = () => {
       .then((data) => {
         setNotifications(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const getSubAdmins = () => {
@@ -52,7 +52,7 @@ const NotificationBell = () => {
           }))
         );
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const getMessages = () => {
@@ -102,7 +102,7 @@ const NotificationBell = () => {
 
         setConversations(convos);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const formatMessageTime = (timestamp) => {
@@ -150,7 +150,7 @@ const NotificationBell = () => {
           );
         }
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const handleMarkAllAsRead = () => {
@@ -161,7 +161,7 @@ const NotificationBell = () => {
           setNotifications(notifications.map((n) => ({ ...n, read: true })));
         }
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const selectSubAdmin = (id) => {
@@ -242,7 +242,7 @@ const NotificationBell = () => {
 
         setMessageText("");
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   // ... rest of your component (JSX and styles) remains the same ...

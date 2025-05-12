@@ -6,32 +6,41 @@ import sys
 sys.path.append("..")
 
 # Create your models here.
+# models.py
 class notification(models.Model):
-    class type(models.TextChoices):
-        REQUEST = 'r',('request')
-        RESPONSE = 's',('response')
-    title = models.CharField(max_length= 100 , null=True)
-    branch = models.ForeignKey(branch, on_delete=models.CASCADE)
-    user = models.ForeignKey(user , on_delete= models.CASCADE, null=True)
-    message = models.CharField(max_length=300 )
-    time = models.TimeField(auto_now_add= True)
+    class Type(models.TextChoices):
+        REQUEST = 'r', ('Request')
+        RESPONSE = 's', ('Response')
+        ALERT = 'a', ('Alert')  # New type for vehicle alerts
+    
+    title = models.CharField(max_length=100, null=True)
+    branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    vehicle = models.ForeignKey(vehicle, on_delete=models.SET_NULL, null=True, blank=True)  # New field
+    message = models.CharField(max_length=300)
+    time = models.TimeField(auto_now_add=True)
     date = models.DateField(auto_now_add=True)
     read = models.BooleanField(default=False)
-    types =models.CharField(max_length=10, choices=type.choices ,default=type.REQUEST)
+    notification_type = models.CharField(
+        max_length=10, 
+        choices=Type.choices, 
+        default=Type.ALERT  # Changed default to ALERT
+    )
+
     class Meta:
-        ordering = ['-date','-time']  # Newest messages first
+        ordering = ['-date', '-time']
 
     def __str__(self):
-        return f"Notification to {self.user} at {self.time} on {self.date}"
+        return f"Alert to {self.branch.name} at {self.time}"
     
 class message(models.Model):
     sender = models.ForeignKey(
-        user,
+        User,
         on_delete=models.CASCADE,
         related_name='sent_messages'  # Unique related_name for sender
     )
     receiver = models.ForeignKey(
-        user,
+        User,
         on_delete=models.CASCADE,
         related_name='received_messages'  # Unique related_name for receiver
     )

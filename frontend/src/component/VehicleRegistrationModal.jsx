@@ -219,7 +219,7 @@ const VehicleRegistrationModal = ({ onClose, onSave }) => {
         // Handle server validation errors
         setErrors(error.response.data);
       } else {
-        alert(error.message || "Failed to register vehicle");
+        console.log(error.message || "Failed to register vehicle");
       }
     } finally {
       setIsSubmitting(false);

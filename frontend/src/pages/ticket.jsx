@@ -1,6 +1,5 @@
-import { useState, useContext, useEffect } from "react"
+import { useState, useEffect } from "react"
 import api from '../api';
-import { USER_ROLE } from "../constants";
 import Sidebar from "../component/sidebar";
 import Header from "../component/Header";
 
@@ -65,7 +64,7 @@ export default function TicketPurchase() {
       });
       window.location.href = response.url;  
     } catch (error) {
-      alert("Payment initiation failed!");
+      console.log("Payment initiation failed!");
       setLoadings(false);
     }
   };
@@ -237,12 +236,15 @@ export default function TicketPurchase() {
     </div>
   )
 }
+function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
+  const [selectedRoute, setSelectedRoute] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [users, setUsers] = useState([]);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
-  const [selectedRoute , setSelectedRoute] = useState("")
-  const [selectedLevel , setSelectedLevel] = useState("")
-  const [searchterm , setSearchTerm] = useState("")
-  const [ user , setUser] = useState([])
   const [formData, setFormData] = useState({
     ticket_type: "S",
     Quantity: 1,
@@ -250,25 +252,47 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
     takeoff_date: "",
     total_prize: 0
   });
+
   const [pformData, setpFormData] = useState({
     status: 'c',
     transaction_id: "12132xw1212",
     types: 'i',
-    remark :'Ticket Purchase',
-
+    remark: 'Ticket Purchase',
   });
-  const getUser = () => {
-        
-    api
-      .get(`api/getUser/${searchterm}`)
-      .then((res) => res.data)
-      .then((data) => {
-        setUser(data)
-        
-        console.log(data);
-      })
-      .catch((err) => console.log(err));
+
+  // Debounce search to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm.length > 2) {
+        searchUsers();
+      } else {
+        setUsers([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const searchUsers = async () => {
+    setIsSearching(true);
+    try {
+      const response = await api.get(`api/getUser/${searchTerm}`);
+      setUsers(response.data);
+      setShowDropdown(response.data.length > 0);
+    } catch (err) {
+      console.log(err);
+      setUsers([]);
+    } finally {
+      setIsSearching(false);
+    }
   };
+
+  const handleUserSelect = (user) => {
+    setSelectedUser(user);
+    setSearchTerm(user.phone_number);
+    setShowDropdown(false);
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -276,27 +300,34 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
       [name]: value
     }));
   };
-  
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    try{
-      pformData['user'] = user
-    pformData['branch'] = selectedRoute.first_destination
-    pformData['amount'] = formData.total_prize
-    api.post(`api/addpayments/`,pformData)
-        formData['user'] = user.id
-    formData['route'] = selectedRoute.id
-    formData['level'] = selectedLevel.id
-    api.post(`api/ticket/`,formData)
-    
-    
+    try {
+      if (!selectedUser) {
+        console.log("Please select a user first");
+        return;
+      }
 
+      pformData['user'] = selectedUser.id;
+      pformData['branch'] = selectedRoute.first_destination;
+      pformData['amount'] = formData.total_prize;
+      
+      formData['user'] = selectedUser.id;
+      formData['route'] = selectedRoute.id;
+      formData['level'] = selectedLevel.id;
 
-   }
-    catch (error) {
-        console.error("Error submitting form:", error);
-   
-  };}
+      api.post(`api/addpayments/`, pformData);
+      api.post(`api/ticket/`, formData);
+      
+      // Call the pay function if provided
+      if (pay) {
+        pay();
+      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
+  };
 
   return (
     <div className="modal-overlay">
@@ -306,30 +337,47 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
           <button className="close-btn" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
-        <div className="form-group">
-            <label>Search User :</label>
-        <input
-          type="text"
-          value={searchterm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search for existing records"
-        />
-        <button className="form-group" onClick={getUser}>Search</button>
-        
-        {user.length > 0 && (
-          <div className="search-results">
-            {user.map(item => (
-              <div 
-                key={item.id} 
-                className="search-result-item"
-                onClick={() => setUser(item.id)}
-              >
-                {item.phone_number} ({item.id})
+          <div className="form-group search-container">
+            <label>Search User:</label>
+            <div className="search-input-container">
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setSelectedUser(null);
+                  setShowDropdown(e.target.value.length > 0);
+                }}
+                placeholder="Enter phone number"
+              />
+              {isSearching && <div className="search-spinner">Searching...</div>}
+              {showDropdown && users.length > 0 && (
+                <div className="search-dropdown">
+                  {users.map(user => (
+                    <div
+                      key={user.id}
+                      className="dropdown-item"
+                      onClick={() => handleUserSelect(user)}
+                    >
+                      {user.phone_number} {user.name && `(${user.name})`}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {showDropdown && users.length === 0 && !isSearching && (
+                <div className="search-dropdown">
+                  <div className="dropdown-item no-results">No users found</div>
+                </div>
+              )}
+            </div>
+            {selectedUser && (
+              <div className="selected-user">
+                Selected: {selectedUser.phone_number} {selectedUser.name && `(${selectedUser.name})`}
               </div>
-            ))}
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Rest of your form fields remain the same */}
           <div className="form-group">
             <label>Ticket Type</label>
             <select
@@ -338,7 +386,7 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
               onChange={handleChange}
               required
             >
-                <option value="">Select Ticket Type</option>
+              <option value="">Select Ticket Type</option>
               {ticketTypes.map(type => (
                 <option key={type.value} value={type.value}>{type.label}</option>
               ))}
@@ -348,50 +396,51 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
           <div className="form-group">
             <label>Route</label>
             <select
-                id="options"
-                value={selectedRoute?.id || ""}
-                onChange={(e) => {
+              id="options"
+              value={selectedRoute?.id || ""}
+              onChange={(e) => {
                 const selectedOption = e.target.options[e.target.selectedIndex];
                 const routeData = JSON.parse(selectedOption.dataset.branch);
-                 setSelectedRoute(routeData);
-                }}
-                required>
-             <option value="">Select a route</option>
-               {routes.map((br) => (
-             <option 
-                 key={br.id} 
-                 value={br.id}
-                 data-branch={JSON.stringify(br)}
+                setSelectedRoute(routeData);
+              }}
+              required
+            >
+              <option value="">Select a route</option>
+              {routes.map((br) => (
+                <option
+                  key={br.id}
+                  value={br.id}
+                  data-branch={JSON.stringify(br)}
                 >
-                    {br.name}
+                  {br.name}
                 </option>
-                ))}
+              ))}
             </select>
           </div>
 
           <div className="form-group">
             <label>Level</label>
             <select
-                id="options"
-                value={selectedLevel?.id || ""}
-                onChange={(e) => {
+              id="options"
+              value={selectedLevel?.id || ""}
+              onChange={(e) => {
                 const selectedOption = e.target.options[e.target.selectedIndex];
                 const levelData = JSON.parse(selectedOption.dataset.branch);
-                 setSelectedLevel(levelData);
-                }}
-                required>
-             <option value="">Select a level</option>
-               {levels.map((br) => (
-             <option 
-                 key={br.id} 
-                 value={br.id}
-                 data-branch={JSON.stringify(br)}
+                setSelectedLevel(levelData);
+              }}
+              required
+            >
+              <option value="">Select a level</option>
+              {levels.map((br) => (
+                <option
+                  key={br.id}
+                  value={br.id}
+                  data-branch={JSON.stringify(br)}
                 >
-                    {br.detail}
+                  {br.detail}
                 </option>
-                ))}
+              ))}
             </select>
-           
           </div>
 
           <div className="form-group">
@@ -429,85 +478,130 @@ function TicketPurchaseModal({ onClose,pay, routes,levels, ticketTypes }) {
           </div>
 
           <div className="form-group">
-            <label>Total Price : {selectedRoute.route_prize * formData.Quantity * selectedLevel.prize} </label>
+            <label>Total Price: {selectedRoute && selectedLevel ? selectedRoute.route_prize * formData.Quantity * selectedLevel.prize : 0}</label>
             <input
               type="number"
               name="total_prize"
               value={formData.total_prize}
               onChange={handleChange}
-             
               required
             />
-
-         
-            </div>
-          
+          </div>
 
           <div className="modal-actions">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
-            <button type="submit" className="btn btn-primary" onClick={pay} >
+            <button type="submit" className="btn btn-primary">
               Proceed payments
             </button>
           </div>
         </form>
-      </div>
 
-      <style jsx>{`
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.5);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          z-index: 1000;
-        }
-        .modal {
-          padding: 20px;
-          border-radius: 8px;
-          width: 90%;
-          max-width: 500px;
-          max-height: 90vh;
-          overflow-y: auto;
-        }
-        .modal-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 20px;
-        }
-        .close-btn {
-          background: none;
-          border: none;
-          font-size: 1.5rem;
-          cursor: pointer;
-        }
-        .form-group {
-          margin-bottom: 15px;
-        }
-        .form-group label {
-          display: block;
-          margin-bottom: 5px;
-        }
-        .form-group select,
-        .form-group input {
-          width: 100%;
-          padding: 8px;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-        }
-        .modal-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 10px;
-          margin-top: 20px;
-        }
-      `}</style>
+        <style jsx>{`
+          .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+          }
+          .modal {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+          }
+          .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          }
+          .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+          }
+          .form-group {
+            margin-bottom: 15px;
+            position: relative;
+          }
+          .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+          }
+          .form-group select,
+          .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+          }
+          .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+          }
+          .search-container {
+            position: relative;
+          }
+          .search-input-container {
+            position: relative;
+          }
+          .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          }
+          .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+          }
+          .dropdown-item:hover {
+            background-color: #f5f5f5;
+          }
+          .no-results {
+            color: #999;
+            padding: 8px 12px;
+          }
+          .selected-user {
+            margin-top: 5px;
+            padding: 5px;
+            background: #f0f8ff;
+            border-radius: 4px;
+            font-size: 0.9em;
+          }
+          .search-spinner {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 0.8em;
+          }
+        `}</style>
+      </div>
     </div>
   );
 }

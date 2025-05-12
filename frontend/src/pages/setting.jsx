@@ -49,7 +49,7 @@ export default function Settings() {
         setNotifications(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   useEffect(()=>{
     getNotification();
@@ -100,7 +100,7 @@ export default function Settings() {
         })
       }
     } catch (error) {
-      alert(error);
+      console.log(error);
     } finally {
     }
    
@@ -121,7 +121,7 @@ export default function Settings() {
         })
       }
     } catch (error) {
-      alert(error);
+      console.log(error);
     } finally {
     }
    
@@ -175,7 +175,7 @@ export default function Settings() {
         )
       }
     } catch (error) {
-      alert(error);
+      console.log(error);
     } finally {
     }
   }
@@ -203,6 +203,12 @@ export default function Settings() {
       </div>
 
       <div className="card">
+      {message.text && (
+            <div className={`alert ${message.type === "success" ? "alert-success" : "alert-error"}`}>
+              {message.text}
+            </div>
+          )}
+
         <div className="tabs">
         {isAdmin&& (
           <div className={`tab ${activeTab === "profile" ? "active" : ""}`} onClick={() => setActiveTab("profile")}>
@@ -402,7 +408,21 @@ export default function Settings() {
           background-color: var(--bg-secondary);
           border-radius: 8px;
         }
+         .alert {
+          padding: 10px 15px;
+          margin-bottom: 20px;
+          border-radius: 4px;
+        }
         
+        .alert-success {
+          background-color: #d4edda;
+          color: #155724;
+        }
+        
+        .alert-error {
+          background-color: #f8d7da;
+          color: #721c24;
+        }
         .password-requirements h3 {
           font-size: 1rem;
           margin-bottom: 10px;

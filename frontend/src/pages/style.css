@@ -8,6 +8,7 @@
     --text-light: #6c757d;
     --border-color: #e9ecef;
     --success-color: #28a745;
+    --edit-color: #285ba7;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -198,6 +199,15 @@
   .btn-success:hover {
     background-color: #218838;
   }
+  .btn-edit {
+    background-color: var(--edit-color);
+    color: white;
+  }
+  
+  .btn-success:hover {
+    background-color: #285ba7;;
+  }
+  
   
   .btn-block {
     display: block;

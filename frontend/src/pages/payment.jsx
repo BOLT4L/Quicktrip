@@ -30,7 +30,7 @@ export default function Payments() {
         setPayments(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
  
 
@@ -73,7 +73,7 @@ const [loadings, setLoadings] = useState(false);
       });
       window.location.href = response.url;  
     } catch (error) {
-      alert("Payment initiation failed!");
+      console.log("Payment initiation failed!");
       setLoadings(false);
     }
     setShowPaymentModal(false)

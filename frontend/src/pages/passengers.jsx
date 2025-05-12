@@ -52,7 +52,7 @@ export default function Passengers() {
         setPassengers(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   const handleTripSelect = (trip) => {
     setSelectedTrip(trip)
@@ -171,6 +171,7 @@ export default function Passengers() {
                                 <th>From</th>
                                 <th>To</th>
                                 <th>Fare</th>
+                                <th>Quantity</th>
                                 <th>Actions</th>
                               </tr>
                             </thead>
@@ -180,7 +181,8 @@ export default function Passengers() {
                                   <td>{new Date(trip.time).toLocaleDateString()}</td>
                                   <td>{trip.ticket.route.first_destination?.name}</td>
                                   <td>{trip.ticket.route.last_destination?.name}</td>
-                                  <td>${trip.payment.amount}</td>
+                                  <td>{trip.payment.amount} ETB</td>
+                                  <td>{trip.ticket.Quantity}</td>
                                   <td>
                                     <button className="btn btn-sm btn-primary" onClick={() => handleTripSelect(trip)}>
                                       View Details

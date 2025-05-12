@@ -80,8 +80,8 @@ def success_page(request):
     return render(request, 'next.html', {'transaction': transaction})
 class PasswordChangeView(generics.UpdateAPIView):
     serializer_class = PasswordChangeSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = user.objects.all()
+    permission_classes = [AllowAny]
+    queryset = User.objects.all()
     
     def get_object(self):
         return self.request.user
@@ -93,7 +93,6 @@ class PasswordChangeView(generics.UpdateAPIView):
         user = self.get_object()
         user = serializer.update(user, serializer.validated_data)
         
-        # Maintain session after password change
         update_session_auth_hash(request, user)
         
         return Response({
@@ -129,12 +128,12 @@ class Fan_search(generics.ListAPIView):
 class branchs(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = branchSerializer
-    queryset = branch.objects.all()
+    queryset = Branch.objects.all()
 
 class branchDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated,IsAdmin]
     serializer_class = branchSerializer
-    queryset = branch.objects.all()
+    queryset = Branch.objects.all()
 
 class levels(generics.ListAPIView):
      permission_classes = [IsAuthenticated]
@@ -146,7 +145,7 @@ class routes_sub(generics.ListCreateAPIView):
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class routes(generics.ListAPIView):
-     permission_classes = [IsAuthenticated,IsSub]
+     permission_classes = [AllowAny]
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class detailRoutes(generics.RetrieveUpdateDestroyAPIView):
@@ -154,18 +153,31 @@ class detailRoutes(generics.RetrieveUpdateDestroyAPIView):
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class Staffs(generics.ListCreateAPIView):
-     permission_classes = [IsAuthenticated]
-     serializer_class = userSerializer
-     queryset = user.objects.filter(user_type = 's')
+     permission_classes = [AllowAny]
+     serializer_class = usersSerializer
+     queryset = User.objects.filter(user_type = 's')
 
+class UserDetailView(generics.RetrieveUpdateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializers
+    lookup_field = 'id'
+    
+class EmployeeDetailView(generics.RetrieveUpdateAPIView):
+    queryset = employeeDetail.objects.all()
+    serializer_class = EmployeeDetailSerializer
+    lookup_field = 'id'
+class BranchsListView(generics.ListAPIView):
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+    permission_classes = [IsAuthenticated]
      
 class usertravel(generics.ListAPIView):
     permission_classes = [AllowAny]
     serializer_class = UsertravelSerializer
-    queryset = user.objects.exclude(travel_history__isnull = True)
+    queryset = User.objects.exclude(travel_history__isnull = True)
 
 class ad_notif(generics.ListCreateAPIView):
-     permission_classes = [IsAuthenticated]
+     permission_classes = [AllowAny]
      serializer_class = notificationSerilalizer
      def get_queryset(self):
         id = self.kwargs['id']
@@ -240,7 +252,7 @@ class ad_editnotif(generics.RetrieveUpdateDestroyAPIView):
 class driver(generics.ListCreateAPIView):
      permission_classes = [AllowAny]
      serializer_class = userSerializer
-     queryset = user.objects.filter(user_type = 'd')
+     queryset = User.objects.filter(user_type = 'd')
 
 
 class sub_dashboard(generics.ListCreateAPIView):
@@ -288,12 +300,12 @@ class staffListAD(generics.ListCreateAPIView):
     serializer_class = userSerializer
     def get_queryset(self):
         branch_id = self.kwargs['bid']
-        return user.objects.filter(branch = branch_id)
+        return User.objects.filter(branch = branch_id)
  
 class addtraveller(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = addtraveller
-    queryset = user.objects.all()
+    queryset = User.objects.all()
     
 class other_cred(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -305,7 +317,7 @@ class other_cred(generics.ListCreateAPIView):
 class userDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated] 
     serializer_class = UserSerializer
-    queryset = user.objects.all()
+    queryset = User.objects.all()
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True 
         return super().update(request, *args, **kwargs)
@@ -318,7 +330,7 @@ class getuser(generics.ListAPIView):
     serializer_class = userSerializer
     def get_queryset(self):
         phone_number = self.kwargs['phonenumber']
-        return user.objects.filter(phone_number = phone_number)
+        return User.objects.filter(phone_number = phone_number)
 
 class sub_route(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
@@ -358,7 +370,15 @@ class buyticket(generics.CreateAPIView):
 class payments(generics.ListCreateAPIView):
     serializer_class = paymentSerializer
     permission_classes = [AllowAny]
-    queryset = payment.objects.all()
+ 
+    def get_queryset(self):
+        users = self.request.user
+        if users.user_type == 'a':
+            return payment.objects.all()  
+        elif users.user_type == 's' and users.branch:
+            return payment.objects.filter(branch=users.branch)  
+        else:
+            return route.objects.none()
     
 class addpayments(generics.CreateAPIView):
     serializer_class = addpaymentSerializer
@@ -451,7 +471,7 @@ class payDriver(generics.RetrieveUpdateAPIView):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)   
 class UserDeactivateAPIView(generics.RetrieveUpdateAPIView):
-    queryset = user.objects.all()
+    queryset = User.objects.all()
     serializer_class = userSerializer
     permission_classes = [IsAuthenticated]   
     lookup_field = 'id'

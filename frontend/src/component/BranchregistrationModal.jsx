@@ -37,13 +37,12 @@ const BranchRegistrationModal = ({ onClose , onSave }) => {
       const res = await api.post(`api/branch/`, payload);
       
       if (res.status === 201) {
-        onSave();
         onClose();
-        window.location.reload; // Close the modal
+        // Close the modal
       }
     } catch (error) {
       console.error("Error creating branch:", error);
-      alert(error);
+      console.log(error);
     }
   };
 

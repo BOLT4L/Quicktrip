@@ -5,6 +5,7 @@ import Sidebar from "../component/sidebar";
 import Header from "../component/Header";
 import SubAdminModal from "../component/SubAdminModal";
 import StationMap from "../component/StationMap";
+import SubAdminEdit from "../component/SubAdminEdit";
 function Sub_admin() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -19,11 +20,13 @@ function Sub_admin() {
     position: "",
   });
   const [showModal, setShowModal] = useState(false);
+  const [showEditModal, setEditModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [showMap, setShowMap] = useState(false);
   const [branch, setBranch] = useState(null);
   const [subAdmins, setSubAdmins] = useState([]);
+  const [selectedsubAdmins, setselectedSubAdmins] = useState([]);
 
   useEffect(() => {
     getStaffs();
@@ -39,6 +42,11 @@ function Sub_admin() {
     ]);
     setShowModal(false);
   };
+  const handleEditSubAdmin = () => {
+    window.location.reload
+    window.location.reload
+    
+  };
   const getStaffs = () => {
     api
       .get("api/staffs/")
@@ -47,7 +55,7 @@ function Sub_admin() {
         setSubAdmins(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   const getBranch = () => {
     api
@@ -57,7 +65,7 @@ function Sub_admin() {
         setBranch();
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   const handleDeactivate = (userId) => {
     setLoading(true);
@@ -86,12 +94,7 @@ function Sub_admin() {
       setLoading(false);
     }
   };
-  const handleDeleteSubAdmin = (id) => {
-    if (confirm("Are you sure you want to delete this sub-admin?")) {
-      setSubAdmins(subAdmins.filter((admin) => admin.id !== id));
-    }
-  };
-
+  
   const filteredSubAdmins = subAdmins.filter((admin) => {
     const matchesSearch =
       admin.employee.Fname.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -145,7 +148,6 @@ function Sub_admin() {
                     <th>First Name</th>
                     <th>Last Name</th>
                     <th>Phone</th>
-
                     <th>Role</th>
                     <th>Station</th>
                     <th>Actions</th>
@@ -164,7 +166,10 @@ function Sub_admin() {
                         </span>
                       </td>
                       <td>{admin.branch.name}</td>
-                      <td>
+                      <td className="button">
+                      <div className="action-buttons">
+                        <button className={`btn btn-edit`} onClick={() => {setEditModal(true),setselectedSubAdmins(admin)}}>Edit</button>
+                      </div>
                         <div className="action-buttons">
                           {admin.is_active ? (<button
                             onClick={() => handleDeactivate(admin.id)}
@@ -226,6 +231,13 @@ function Sub_admin() {
               onSave={handleAddSubAdmin}
             />
           )}
+          {showEditModal && (
+            <SubAdminEdit
+              onClose={() => {setEditModal(false), setselectedSubAdmins([])}}
+              onSave={handleEditSubAdmin}
+              subAdmin={selectedsubAdmins}
+            />
+          )}
         </div>
         <style jsx>{`
           .sub-admins-page {
@@ -270,6 +282,11 @@ function Sub_admin() {
 
           .action-buttons {
             display: flex;
+            gap: 5px;
+          }
+            .button {
+            display: flex;
+            flex-direction :row;
             gap: 5px;
           }
 

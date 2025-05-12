@@ -7,9 +7,9 @@ const SubAdminModal = ({ onClose, onSave }) => {
   const [user,setUser] = useState("")
   const [employee, setEmployee] = useState({Fname:"",Lname:"",address:"",position:""})
   const [phone_number,setPhone_number] = useState("")
-  const [branch,setBranch] = useState([])
+  const [branchs,setBranchs] = useState([])
   const [errors, setErrors] = useState({})
-  const [selectedbranch , setselectedBranch] = useState(null)
+  const [branch , setBranch] = useState(null)
   const [selectedUser , setselectedUser] = useState(null)
   const [message, setMessage] = useState({ type: "", text: "" })
   const [searchterm ,setSearchTerm] = useState("")
@@ -27,7 +27,7 @@ const SubAdminModal = ({ onClose, onSave }) => {
         setUser(data)
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
   const getBranch= () => {
         
@@ -35,10 +35,10 @@ const SubAdminModal = ({ onClose, onSave }) => {
       .get(`api/branch/`)
       .then((res) => res.data)
       .then((data) => {
-        setBranch(data)
+        setBranchs(data)
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
  
@@ -65,33 +65,40 @@ const SubAdminModal = ({ onClose, onSave }) => {
     return Object.keys(newErrors).length === 0
   }
   const addUser = async (e) => {
-    
     e.preventDefault();
-
+  
     try {
       const res = await api.post(`api/staffs/`, {
-        user_type : "s",
-        phone_number : phone_number,
-        branch : selectedbranch,
-        password : "1234",
-        employee ,
-        nid : selectedUser,
+        user_type: "s",
+        phone_number: phone_number,
+        branch:  branch,  // Send as object with id property
+        password: "1234",
+        employee,
+        nid: selectedUser,
       });
+      const ress = await api.post(`api/ad_notif/${id}`, {
+        title: 'Sub Admin Created ',
+        branch : branch ,
+        message : `Sub Admin ${employee.Fname} ${employee.Lname}Created `,
+        types : 'r',
+        user : id,      });
+      
       if (res.status === 201) {
         setMessage({
-          type: "Registered Successfully",
-          text: "Registered   successfully!",
-        })
-        onSave?.();
-        onClose();
-        window.location.href = `/subadmin`;
+          type: "success",
+          text: "Registered successfully!",
+        });
+         
+        
+        // window.location.href = `/subadmin`; // Consider using navigate instead
       }
     } catch (error) {
-      alert(error);
-    } finally {
+      setMessage({
+        type: "error",
+        text: error.response?.data?.non_field_errors?.[0] || "An error occurred"
+      });
     }
   };
-
   return (
     <div className="modal-backdrop">
       <div className="modal">
@@ -111,6 +118,41 @@ const SubAdminModal = ({ onClose, onSave }) => {
               {message.text}
             </div>
           )}
+          <div className="form-group">
+              <label htmlFor="nationalId" className="form-label">
+                National ID Number
+              </label>
+              <input
+                type="text"
+                value={searchterm}
+                className={`form-control ${errors.position? "is-invalid" : ""}`}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               placeholder="Search for existing records"
+               />
+               
+        
+              {errors.nationalId && <div className="error-message">{errors.nationalId}</div>}
+        <button onClick={getUser} className="btn btn-primary">Search</button> 
+        {user.length > 0 && (
+          <div className="search-results">
+            {user.map(item => (
+              <div 
+                key={item.id} 
+                className="form-label"
+                onClick={() => {setselectedUser(item.id); setEmployee({
+                  ...employee,
+                  Fname: item.Fname || employee.Fname,
+                  Lname: item.Lname || employee.Lname
+                                          });}}
+              >
+                {item.Fname} {item.Lname}, FAN : {item.FAN}
+                
+              </div>  
+            ))}
+          </div>
+        )}
+       
+            </div>
           
             <div className="form-group">
               <label htmlFor="name" className="form-label">
@@ -181,63 +223,30 @@ const SubAdminModal = ({ onClose, onSave }) => {
               <label htmlFor="station" className="form-label">
                 Job Position
               </label>
-              <input
-                type="text"
-                id="position"
-                name="position"
-                className={`form-control ${errors.position? "is-invalid" : ""}`}
-                value={employee.position}
-                onChange={(e) => setEmployee(prevUser => ({...prevUser,position: e.target.value }))}
-              />
+               <select className={`form-control ${errors.position? "is-invalid" : ""}`} value={employee.position} onChange={(e) => setEmployee(prevUser => ({...prevUser,position: e.target.value }))}>
+              <option value="">All Types</option>
+              <option value="Station Manager">Station Manager</option>
+              <option value="Branch Operator">Branch Operator</option>
+            </select>
               {errors.position && <div className="error-message">{errors.position}</div>}
             </div>
 
 
-            <div className="form-group">
-              <label htmlFor="nationalId" className="form-label">
-                National ID Number
-              </label>
-              <input
-                type="text"
-                value={searchterm}
-                className={`form-control ${errors.position? "is-invalid" : ""}`}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               placeholder="Search for existing records"
-               />
-               
-        
-              {errors.nationalId && <div className="error-message">{errors.nationalId}</div>}
-        <button onClick={getUser} className="btn btn-primary">Search</button> 
-        {user.length > 0 && (
-          <div className="search-results">
-            {user.map(item => (
-              <div 
-                key={item.id} 
-                className="form-label"
-                onClick={() => setselectedUser(item.id)}
-              >
-                {item.Fname} {item.Lname}, FAN : {item.FAN}
-                
-              </div>  
-            ))}
-          </div>
-        )}
-       
-            </div>
+            
             <div className="form-group">
            <select
   className={`form-control ${errors.lname ? "is-invalid" : ""}`}
   id="options"
-  value={selectedbranch?.id || ""}
+  value={branch?.id || ""}
   onChange={(e) => {
     const selectedOption = e.target.options[e.target.selectedIndex];
     const branchData = JSON.parse(selectedOption.dataset.branch);
-    setselectedBranch(branchData);
+    setBranch(branchData);
   }}
   required
 >
   <option value="">Select a branch</option>
-  {branch.map((br) => (
+  {branchs.map((br) => (
     <option 
       key={br.id} 
       value={br.id}

@@ -38,7 +38,8 @@ export default function Revenue() {
         setPassengers(data);
         console.log(data);
       })
-      .catch((err) => alert(err));
+      .catch((err) => { setError(err.message);
+        setLoading(false);});
   };
   
   
@@ -96,7 +97,7 @@ export default function Revenue() {
       saveAs(new Blob([response.data]), filename);
     } catch (error) {
       console.error('Error downloading report:', error);
-      alert('Failed to download report');
+       console.error('Failed to download report');
     } finally {
       setLoading(false);
     }
@@ -114,7 +115,7 @@ export default function Revenue() {
       saveAs(new Blob([response.data]), filename);
     } catch (error) {
       console.error('Error downloading report:', error);
-      alert('Failed to download report');
+      console.log('Failed to download report');
     } finally {
       setLoadingss(false);
     }
@@ -132,7 +133,7 @@ export default function Revenue() {
       saveAs(new Blob([response.data]), filename);
     } catch (error) {
       console.error('Error downloading report:', error);
-      alert('Failed to download report');
+       console.error('Failed to download report');
     } finally {
       setLoadings(false);
     }
@@ -150,7 +151,7 @@ export default function Revenue() {
       saveAs(new Blob([response.data]), filename);
     } catch (error) {
       console.error('Error downloading report:', error);
-      alert('Failed to download report');
+       console.error('Failed to download report');
     } finally {
       setLoad(false);
     }

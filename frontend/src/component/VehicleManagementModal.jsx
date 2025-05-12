@@ -262,7 +262,7 @@ const VehicleManagementModal = ({ mode = "edit", vehicleId , onClose, onSave, on
       if (error.response?.data) {
         setErrors(error.response.data);
       } else {
-        alert(error.message || "Operation failed");
+        console.log(error.message || "Operation failed");
       }
     } finally {
       setIsSubmitting(false);

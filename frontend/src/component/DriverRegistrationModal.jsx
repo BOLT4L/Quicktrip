@@ -49,7 +49,7 @@ const DriverRegistrationModal = ({ onClose, onSave }) => {
     api.get(`api/nids/${searchTerm}`)
       .then((res) => res.data)
       .then((data) => setUsers(data))
-      .catch((err) => alert(err));
+      .catch((err) => console.log(err));
   };
 
   const handlePhotoChange = (e) => {

@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import user,branch
+from user.models import User,Branch
 
 
 import sys
@@ -8,8 +8,8 @@ sys.path.append("..")
 class route(models.Model):
 
     name = models.CharField(max_length=50)
-    first_destination = models.ForeignKey(branch, on_delete=models.CASCADE, related_name='origin',null=True)
-    last_destination = models.ForeignKey(branch, on_delete=models.CASCADE, related_name='destination',null=True)
+    first_destination = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='origin',null=True)
+    last_destination = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='destination',null=True)
     distance = models.IntegerField(default= 0)
     route_prize = models.DecimalField(max_digits=10 , decimal_places=2)
 
@@ -31,7 +31,7 @@ class location(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     
 class vehicle(models.Model):
-    branch = models.ForeignKey(branch, on_delete=models.SET_NULL, null = True)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null = True)
     name = models.CharField(max_length=100)
     plate_number = models.CharField(max_length=10 ,unique= True)
     color = models.CharField(max_length=50)
@@ -40,7 +40,7 @@ class vehicle(models.Model):
     sit_number = models.IntegerField(default=0)
     picture = models.ImageField(upload_to='vehicle_management/vehicle_image')
     is_active =models.BooleanField(default=False)
-    user = models.ForeignKey(user,on_delete=models.SET_NULL , null=True, related_name="driver")
+    user = models.ForeignKey(User,on_delete=models.SET_NULL , null=True, related_name="driver")
     types = models.ForeignKey(type, on_delete=models.SET_NULL, null=True)
     location = models.ForeignKey(location , on_delete=models.SET_NULL , null=True)
     last_updated = models.DateTimeField(auto_now=True)
@@ -60,9 +60,9 @@ class ExitSlip(models.Model):
         COMPLETED = 'c', 'Completed'
 
     vehicle = models.ForeignKey(vehicle, on_delete=models.CASCADE)
-    driver = models.ForeignKey(user, on_delete=models.CASCADE)
-    from_location = models.ForeignKey(branch, related_name='exit_from', on_delete=models.CASCADE)
-    to_location = models.ForeignKey(branch, related_name='exit_to', on_delete=models.CASCADE)
+    driver = models.ForeignKey(User, on_delete=models.CASCADE)
+    from_location = models.ForeignKey(Branch, related_name='exit_from', on_delete=models.CASCADE)
+    to_location = models.ForeignKey(Branch, related_name='exit_to', on_delete=models.CASCADE)
     departure_time = models.DateTimeField()
     passenger_count = models.IntegerField()
     status = models.CharField(max_length=1, choices=Status.choices, default=Status.PENDING)

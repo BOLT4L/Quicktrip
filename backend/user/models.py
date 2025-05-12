@@ -21,7 +21,7 @@ class employeeDetail(models.Model):
     Emergency_contact_name = models.CharField(max_length=100,null=True)
     Emergency_contact = models.CharField(max_length=100,null=True)
     Work_experience = models.CharField(max_length=100,null=True)
-class branch(models.Model):
+class Branch(models.Model):
     class b_type(models.TextChoices):
         MAIN = 'm',('main')
         BRANCH = 'b',('branch')
@@ -67,7 +67,7 @@ class credentials(models.Model):
 
 
     
-class user(AbstractBaseUser,PermissionsMixin):
+class User(AbstractBaseUser,PermissionsMixin):
     class type(models.TextChoices):
         ADMIN = 'a' , ('admin')
         SUB_ADMIN = 's',('sub_admin')
@@ -83,7 +83,7 @@ class user(AbstractBaseUser,PermissionsMixin):
     phone_number = models.BigIntegerField(null=False,default=0,unique=True)
     employee = models.OneToOneField(employeeDetail,on_delete=models.SET_NULL ,null = True)
     nid = models.OneToOneField(nidUser,on_delete= models.SET_NULL , null=True)
-    branch = models.ForeignKey(branch,on_delete=models.SET_NULL,null=True)
+    branch = models.ForeignKey(Branch,on_delete=models.SET_NULL,null=True)
     objects = accountmanagerBase()
     credentials = models.ForeignKey(credentials , on_delete=models.SET_NULL, null=True)
 

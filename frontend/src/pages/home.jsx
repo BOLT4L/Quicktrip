@@ -16,17 +16,23 @@ function Report() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [timeRange, setTimeRange] = useState("weekly");
+  const [showGreeting, setShowGreeting] = useState(true);  
 
   const id = localStorage.getItem(USER_ID);
   const hour = new Date().getHours();
+
   useEffect(() => {
-   
     getUser();
     getVehicle();
     getReport();
     getTravelhistory();
+    const timer = setTimeout(() => {
+      setShowGreeting(false);
+    }, 5000);
  
-  },[]);
+    return () => clearTimeout(timer);
+  }, []);
+
   const getReport = () => {
     api
       .get('api/payments/')
@@ -40,6 +46,7 @@ function Report() {
         setLoading(false);
       });
   };
+
   const getTravelhistory = () => {
     api
       .get('api/report/')
@@ -53,6 +60,7 @@ function Report() {
         setLoading(false);
       });
   };
+
   const getVehicle = () => {
     api
       .get('api/vehicles/')
@@ -80,11 +88,11 @@ function Report() {
         setLoading(false);
       });
   };
-  
- 
+
   if (loading) return <div>Loading...</div>;
-  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   if (error) return <div className="error-message">Error: {error}</div>;
+
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
   return (
     <div className="dashboard-container">
@@ -95,11 +103,23 @@ function Report() {
         
         <div className="dashboard-content">
           <div className="dashboard-header">
-            <h1>  {greeting},{' '}
-          {user?.employee 
-            ? `${user.employee.Fname} ${user.employee.Lname}`
-            : 'User'
-          }!</h1>
+            {showGreeting && (
+              <h1>
+                {greeting},{' '}
+                {user?.employee 
+                  ? `${user.employee.Fname} ${user.employee.Lname}`
+                  : 'User'
+                }!
+              </h1>
+            )}
+            {!showGreeting && (
+              <h1>
+                 {user
+                  ? `${user.branch.name} `
+                  : 'No brnach'
+                }
+              </h1>
+            )}
             <div className="time-filter">
               {["daily", "weekly", "monthly", "yearly"].map((range) => (
                 <button
@@ -114,9 +134,8 @@ function Report() {
           </div>
 
           <DashboardStats 
-            vehicles = {vehicles}
-            payments = {report}
-          
+            vehicles={vehicles}
+            payments={report}
           />
 
           <div className="grid grid-2">
@@ -125,7 +144,7 @@ function Report() {
                 <h2 className="card-title">Revenue Overview</h2>
               </div>
               <div className="chart-container">
-                <RevenueChart timeRange={timeRange} payments = {report} />
+                <RevenueChart timeRange={timeRange} payments={report} />
               </div>
             </div>
 
@@ -134,7 +153,7 @@ function Report() {
                 <h2 className="card-title">Passenger Trends</h2>
               </div>
               <div className="chart-container">
-                <PassengerChart timeRange={timeRange} passengerHistory = {history} />
+                <PassengerChart timeRange={timeRange} passengerHistory={history} />
               </div>
             </div>
           </div>
@@ -142,9 +161,8 @@ function Report() {
           <div className="card">
             <div className="card-header">
               <h2 className="card-title">Recently Registered Vehicles</h2>
-              
             </div>
-            <RecentVehicles  vehicles = {vehicles}/>
+            <RecentVehicles vehicles={vehicles} />
           </div>
         </div>
       </div>
@@ -164,7 +182,7 @@ function Report() {
         .dashboard-content {
           flex: 1;
           padding: 20px;
-          margin-top: 60px; /* Space for fixed header */
+          margin-top: 60px;
         }
         
         .dashboard-header {

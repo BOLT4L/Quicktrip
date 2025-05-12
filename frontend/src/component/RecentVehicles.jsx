@@ -1,6 +1,5 @@
 const RecentVehicles = ({vehicles}) => {
-    // Mock data for recently registered vehicles
-    
+
     return (
       <div className="table-container">
         <table className="table">
