@@ -1,0 +1,17 @@
+flutter_native_splash:
+  color: "#FFFFFF"
+  color_dark: "#272727"
+  image: "assets/logos/bus_light1.png"
+  image_dark: "assets/logos/bus_dark2.png"
+  branding: "assets/logos/light.png"
+  branding_dark: "assets/logos/dark.png"
+  ios_content_mode: scaleAspectFit # Ensures the image is fully visible
+
+  android_12:
+    color: "#FFFFFF"
+    color_dark: "#272727"
+    image: "assets/logos/bus_light1.png"
+    image_dark: "assets/logos/bus_dark2.png"
+    branding: "assets/logos/light.png"
+    branding_dark: "assets/logos/dark.png"
+  web: false
