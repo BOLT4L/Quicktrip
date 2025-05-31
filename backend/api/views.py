@@ -6,7 +6,7 @@ from rest_framework.decorators import action
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny ,AllowAny 
+from rest_framework.permissions import AllowAny, AllowAny, IsAuthenticated
 from alert.models import notification
 from .permisions import *
 from .serializers import *
@@ -402,16 +402,50 @@ class driver_vehicle(generics.ListAPIView):
         return vehicle.objects.filter(user = d_id)
 
 class VehicleViewSet(generics.ListCreateAPIView):
+    """
+    API endpoint for managing vehicles.
+    Requires authentication and proper permissions.
+    """
     queryset = vehicle.objects.all()
     serializer_class = vehicleSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]  # Require authentication
     parser_classes = [MultiPartParser, FormParser]
+
     def get_queryset(self):
+        """
+        Filter vehicles by branch.
+        Only show vehicles from the user's branch.
+        """
         branch_id = self.kwargs['bid']
-        return vehicle.objects.filter(branch = branch_id)
+        if not self.request.user.is_authenticated:
+            return vehicle.objects.none()
+        return vehicle.objects.filter(branch=branch_id)
+
+    def perform_create(self, serializer):
+        """
+        Create a new vehicle.
+        Set the branch based on the URL parameter.
+        """
+        branch_id = self.kwargs['bid']
+        branch_obj = branch.objects.get(id=branch_id)
+        serializer.save(branch=branch_obj)
+
+    def create(self, request, *args, **kwargs):
+        """
+        Override create method to handle file uploads and validation.
+        """
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            self.perform_create(serializer)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def update_location(self, request, pk=None):
+        """
+        Update vehicle location.
+        Requires authentication.
+        """
         vehicle = self.get_object()
         latitude = request.data.get('latitude')
         longitude = request.data.get('longitude')
@@ -429,8 +463,12 @@ class VehicleViewSet(generics.ListCreateAPIView):
 
     @action(detail=False, methods=['get'])
     def active_vehicles(self, request):
+        """
+        Get list of active vehicles.
+        Only shows vehicles from the user's branch.
+        """
         active_threshold = timezone.now() - timedelta(minutes=5)
-        active_vehicles = vehicle.objects.filter(
+        active_vehicles = self.get_queryset().filter(
             last_updated__gte=active_threshold,
             is_active=True
         )

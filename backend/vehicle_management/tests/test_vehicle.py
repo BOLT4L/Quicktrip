@@ -10,6 +10,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 import shutil
 import os
 from django.conf import settings
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 
 class BranchFactory(factory.django.DjangoModelFactory):
     """Factory for creating test Branch instances."""
@@ -119,6 +121,7 @@ class TestVehicleAPI:
         api_client.force_authenticate(user=admin_user)
         url = reverse('vehicle add', kwargs={'bid': admin_user.branch.id})
         
+        # Include only required and non-None fields
         data = {
             'user': driver_user.id,
             'name': 'Toyota Camry',
@@ -146,6 +149,7 @@ class TestVehicleAPI:
         assert created_vehicle.branch == admin_user.branch
         assert created_vehicle.picture
         assert created_vehicle.insurance_doc
+        assert created_vehicle.route is None  # Optional field should be None by default
 
     def test_create_vehicle_missing_required_fields(self, api_client, admin_user):
         """
@@ -161,6 +165,7 @@ class TestVehicleAPI:
         
         response = api_client.post(url, data, format='multipart')
         assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'plate_number' in response.data  # Should indicate missing required field
 
     def test_list_vehicles(self, api_client, admin_user):
         """

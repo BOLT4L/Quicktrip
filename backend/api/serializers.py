@@ -9,6 +9,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import nidUser
+from datetime import date, datetime
 import sys
 sys.path.append("..")
 
@@ -244,10 +245,52 @@ class routeSerializers(serializers.ModelSerializer):
         model = route
         fields = ['id','name','first_destination','last_destination','route_prize','distance']
 class vehicleSerializer(serializers.ModelSerializer):
-    
+    """
+    Serializer for vehicle model with proper validation.
+    """
     class Meta:
         model = vehicle
-        fields =  ['route','branch','year','insurance_doc','insurance_date','name','plate_number','color','Model','sit_number','picture','is_active','user','types','last_updated']
+        fields = ['route', 'branch', 'year', 'insurance_doc', 'insurance_date', 'name', 'plate_number', 'color', 'Model', 'sit_number', 'picture', 'is_active', 'user', 'types', 'last_updated']
+        extra_kwargs = {
+            'name': {'required': True},
+            'plate_number': {'required': True},
+            'color': {'required': True},
+            'Model': {'required': True},
+            'sit_number': {'required': True},
+            'types': {'required': True},
+            'user': {'required': True},
+            'picture': {'required': True},
+            'insurance_doc': {'required': True},
+            'insurance_date': {'required': True},
+            'branch': {'required': True},
+            'route': {'required': False},
+            'is_active': {'required': False, 'default': False},
+            'last_updated': {'read_only': True}
+        }
+
+    def validate_plate_number(self, value):
+        """
+        Validate that the plate number is unique.
+        """
+        if vehicle.objects.filter(plate_number=value).exists():
+            raise serializers.ValidationError("A vehicle with this plate number already exists.")
+        return value
+
+    def validate_sit_number(self, value):
+        """
+        Validate that the seat number is positive.
+        """
+        if value <= 0:
+            raise serializers.ValidationError("Seat number must be positive.")
+        return value
+
+    def validate_insurance_date(self, value):
+        """
+        Validate that the insurance date is in the future.
+        """
+        if value < date.today():
+            raise serializers.ValidationError("Insurance date must be in the future.")
+        return value
 
 class vehiclesSerializer(serializers.ModelSerializer):
     user = userSerializer()
