@@ -1,12 +1,12 @@
 from django.shortcuts import render
-from rest_framework import generics
-from rest_framework import viewsets
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.decorators import action
+from rest_framework import generics 
+from rest_framework import viewsets 
+from rest_framework.parsers import MultiPartParser, FormParser 
+from rest_framework.decorators import action 
 from django.utils import timezone
 from datetime import timedelta
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated ,AllowAny
+from rest_framework.permissions import AllowAny ,AllowAny 
 from alert.models import notification
 from .permisions import *
 from .serializers import *
@@ -80,7 +80,7 @@ def success_page(request):
     return render(request, 'next.html', {'transaction': transaction})
 class PasswordChangeView(generics.UpdateAPIView):
     serializer_class = PasswordChangeSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = user.objects.all()
     
     def get_object(self):
@@ -101,7 +101,7 @@ class PasswordChangeView(generics.UpdateAPIView):
             "message": "Password updated successfully"
         })
 class report(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = travelhistorySerializer
     def get_queryset(self):
         user = self.request.user
@@ -114,47 +114,47 @@ class report(generics.ListCreateAPIView):
             return travelhistory.objects.none()  
 class phone_number_search(generics.ListAPIView):
     serializer_class = nidSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         pn = self.kwargs['pn']
         return nidUser.objects.filter(phone_number = pn)
 
 class Fan_search(generics.ListAPIView):
     serializer_class = nidSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         fan = self.kwargs['fan']
         return nidUser.objects.filter(FAN = fan)
     
 class branchs(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = branchSerializer
     queryset = branch.objects.all()
 
 class branchDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated,IsAdmin]
+    permission_classes = [AllowAny,IsAdmin]
     serializer_class = branchSerializer
     queryset = branch.objects.all()
 
 class levels(generics.ListAPIView):
-     permission_classes = [IsAuthenticated]
+     permission_classes = [AllowAny]
      serializer_class = levelSerializer
      queryset = type.objects.all()
 
 class routes_sub(generics.ListCreateAPIView):
-     permission_classes = [IsAuthenticated]
+     permission_classes = [AllowAny]
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class routes(generics.ListAPIView):
-     permission_classes = [IsAuthenticated,IsSub]
+     permission_classes = [AllowAny]
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class detailRoutes(generics.RetrieveUpdateDestroyAPIView):
-     permission_classes = [IsAuthenticated,IsSub,IsBranch]
+     permission_classes = [AllowAny,]
      serializer_class = routeSerializer
      queryset = route.objects.all()
 class Staffs(generics.ListCreateAPIView):
-     permission_classes = [IsAuthenticated]
+     permission_classes = [AllowAny]
      serializer_class = userSerializer
      queryset = user.objects.filter(user_type = 's')
 
@@ -165,7 +165,7 @@ class usertravel(generics.ListAPIView):
     queryset = user.objects.exclude(travel_history__isnull = True)
 
 class ad_notif(generics.ListCreateAPIView):
-     permission_classes = [IsAuthenticated]
+     permission_classes = [AllowAny]
      serializer_class = notificationSerilalizer
      def get_queryset(self):
         id = self.kwargs['id']
@@ -173,7 +173,7 @@ class ad_notif(generics.ListCreateAPIView):
     
 class messages(generics.ListCreateAPIView):
     serializer_class = MessageSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         id = self.kwargs['id']
@@ -244,19 +244,19 @@ class driver(generics.ListCreateAPIView):
 
 
 class sub_dashboard(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated, IsSub]
+    permission_classes = [AllowAny]
     serializer_class = vehicleSerializer
     def get_queryset(self):
         users = self.request.user
         return vehicle.objects.filter(branch = users.branch)
 class recent(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = travelhistorySerializer
     def get_queryset(self):
         users = self.request.user
         return travelhistory.objects.filter(user = users.id)
 class driver_recent(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = travelhistorySerializer
     def get_queryset(self):
         users = self.kwargs['uid']
@@ -271,39 +271,39 @@ class ExitSlipListCreateView(generics.ListCreateAPIView):
 
 class ExitSlipDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ExitSlip.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = ExitSlipSerializer
 class TokenObtain(TokenObtainPairView):
     serializer_class = TokenObtainPairSerializer
 
 class sub_travels(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated,IsSub,IsBranch]
+    permission_classes = [AllowAny]
     serializer_class = travelhistorySerializer
     def get_queryset(self):
         route_id = self.kwargs['rid']
         return travelhistory.objects.filter( ticket__route = route_id)
      
 class staffListAD(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = userSerializer
     def get_queryset(self):
         branch_id = self.kwargs['bid']
         return user.objects.filter(branch = branch_id)
  
 class addtraveller(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = addtraveller
     queryset = user.objects.all()
     
 class other_cred(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = credSerializer
     queryset = credentials.objects.all()
 
 
 
 class userDetail(generics.RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated] 
+    permission_classes = [AllowAny] 
     serializer_class = UserSerializer
     queryset = user.objects.all()
     def update(self, request, *args, **kwargs):
@@ -314,14 +314,14 @@ def delete(request):
     route.objects.all().delete()
     return HttpResponse(request)
 class getuser(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = userSerializer
     def get_queryset(self):
         phone_number = self.kwargs['phonenumber']
         return user.objects.filter(phone_number = phone_number)
 
 class sub_route(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = routeSerializers
     def get_queryset(self):
         users = self.request.user
@@ -334,7 +334,7 @@ class sub_route(generics.ListCreateAPIView):
         
 class tickets(generics.ListAPIView):
     serializer_class = ticketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         users = self.request.user
         if users.user_type == 'a':
@@ -346,7 +346,7 @@ class tickets(generics.ListAPIView):
         
 class buyticket(generics.CreateAPIView):
     serializer_class = buyticketSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         users = self.request.user
         if users.user_type == 'a':
@@ -362,12 +362,12 @@ class payments(generics.ListCreateAPIView):
     
 class addpayments(generics.CreateAPIView):
     serializer_class = addpaymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = payment.objects.all()
     
 class driver_payments(generics.ListAPIView):
     serializer_class = paymentSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         users = self.request.user
         
@@ -379,7 +379,7 @@ class driver_payments(generics.ListAPIView):
 
 class vehicles(generics.ListCreateAPIView):
     serializer_class = vehiclesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         user = self.request.user
         if user.user_type == 'a':
@@ -391,12 +391,12 @@ class vehicles(generics.ListCreateAPIView):
 
 class vehiclesDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = vehiclesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = vehicle.objects.all()
 
 class driver_vehicle(generics.ListAPIView):
     serializer_class = vehiclesSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     def get_queryset(self):
         d_id = self.kwargs['did']
         return vehicle.objects.filter(user = d_id)
@@ -404,7 +404,7 @@ class driver_vehicle(generics.ListAPIView):
 class VehicleViewSet(generics.ListCreateAPIView):
     queryset = vehicle.objects.all()
     serializer_class = vehicleSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     parser_classes = [MultiPartParser, FormParser]
     def get_queryset(self):
         branch_id = self.kwargs['bid']
@@ -440,7 +440,7 @@ class VehicleViewSet(generics.ListCreateAPIView):
 class payDriver(generics.RetrieveUpdateAPIView):
     queryset = payment.objects.all()
     serializer_class = addpaymentSerializer
-    permission_classes = [IsAuthenticated]   
+    permission_classes = [AllowAny]   
     lookup_field = 'id'
 
     def partial_update(self, request, *args, **kwargs):
@@ -453,7 +453,7 @@ class payDriver(generics.RetrieveUpdateAPIView):
 class UserDeactivateAPIView(generics.RetrieveUpdateAPIView):
     queryset = user.objects.all()
     serializer_class = userSerializer
-    permission_classes = [IsAuthenticated]   
+    permission_classes = [AllowAny]   
     lookup_field = 'id'
 
     def partial_update(self, request, *args, **kwargs):
