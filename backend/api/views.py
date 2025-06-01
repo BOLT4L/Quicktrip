@@ -44,7 +44,7 @@ from .models import Transaction
 from django.views.decorators.http import require_POST
 import json
 from decimal import Decimal
-from ..config import send_twilio_message
+from backend.config import send_twilio_message
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 def home(request):

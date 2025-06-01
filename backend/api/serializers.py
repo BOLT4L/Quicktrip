@@ -11,8 +11,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import nidUser
 import sys
 import json
-sys.path.append("..")
-from ..config import send_twilio_message
+from backend.config import send_twilio_message
 
 User = get_user_model()
 

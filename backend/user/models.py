@@ -5,12 +5,12 @@ from api.models import *
 import math
 import sys
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 import random
 import string
-from ..config import send_twilio_message
-
-sys.path.append("..")
-
+import os
+from django.conf import settings
+from backend.config import send_twilio_message
 
 class locations(models.Model):
     latitude = models.FloatField()
@@ -132,31 +132,54 @@ def generate_random_password():
         characters = string.ascii_letters + string.digits
         return ''.join(random.choice(characters) for _ in range(8))
 class OTP(models.Model):
-        phone_number = models.CharField(max_length=15)
-        code = models.CharField(max_length=6, blank=True)
-        created_at = models.DateTimeField(auto_now_add=True)
+    phone_number = models.CharField(max_length=15)
+    code = models.CharField(max_length=6, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
-        def __str__(self):
-            return f'{self.phone_number} - {self.code}'
+    def __str__(self):
+        return f'{self.phone_number} - {self.code}'
 
-        def save(self, *args, **kwargs):
-            # Generate OTP only if it's not set
-            if not self.code:
-                self.code = str(random.randint(100000, 999999))
+    def save(self, *args, **kwargs):
+        # Generate OTP only if it's not set
+        if not self.code:
+            self.code = str(random.randint(100000, 999999))
 
+        try:
+            # Format the phone number
+            formatted_phone = self.phone_number
+            if not formatted_phone.startswith('+'):
+                if formatted_phone.startswith('0'):
+                    formatted_phone = '+251' + formatted_phone[1:]
+                else:
+                    formatted_phone = '+251' + formatted_phone
+
+            # Send SMS via Twilio
             try:
-                message_body = f"""
-                QUICKTRIP OTP
+                account_sid = os.getenv('TWILIO_ACCOUNT_SID', 'AC01fa514281e583e66f9d1fb293d6010f')
+                auth_token = os.getenv('TWILIO_AUTH_TOKEN', '72e79f424bd4e24043b44bde032c798d')
+                from_number = os.getenv('TWILIO_PHONE_NUMBER', '+12674122273')
+                
+                client = Client(account_sid, auth_token)
+                message = client.messages.create(
+                    body=f"""QUICKTRIP OTP
 
-                Hello,
+Hello,
 
-                Your OTP is: {self.code}
+Your OTP is: {self.code}
 
-                It is valid for 15 minutes.
-                """
-                send_twilio_message(format_phone_number(self.phone_number), message_body)
-
+It is valid for 15 minutes.""",
+                    from_=from_number,
+                    to=formatted_phone
+                )
+                print(f"OTP sent to {formatted_phone}, SID: {message.sid}")
+            except TwilioRestException as e:
+                print(f"Twilio API Error: {str(e)}")
+                if e.code == 20003:  # Authentication Error
+                    print("Authentication failed. Please check Twilio credentials.")
             except Exception as e:
-                print(f"Error sending OTP: {e}")
+                print(f"Error sending OTP via Twilio: {str(e)}")
 
-            return super().save(*args, **kwargs)
+        except Exception as e:
+            print(f"Error in OTP processing: {str(e)}")
+
+        return super().save(*args, **kwargs)
