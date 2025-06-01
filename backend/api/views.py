@@ -44,6 +44,7 @@ from .models import Transaction
 from django.views.decorators.http import require_POST
 import json
 from decimal import Decimal
+from ..config import send_twilio_message
 
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 def home(request):
@@ -350,29 +351,19 @@ class RegisterUserView(APIView):
         otp = request.data.get("otp")
         nid = request.data.get("nid")
         try:  
-            
-                account_sid = 'AC01fa514281e583e66f9d1fb293d6010f'
-                auth_token = '1fa05952205a1e544adefef74e7c3a53'
-                client = Client(account_sid, auth_token)
+            message_body = f"""
+            QUICKTRIP OTP
 
-                message = client.messages.create(
-                    body=f"""
-                    QUICKTRIP OTP
+            Hello,
 
-                    Hello,
+            Your Current Password is: {password}
 
-                    Your Current Password is: {password}
-
-                    Please Change Password after Login
- 
-                    """,
-                    from_='+12674122273',
-                    to=format_phone_number({self.phone_number})
-                )
-
-                print(f"OTP sent to {phone}, SID: {message.sid}")
+            Please Change Password after Login
+            """
+            send_twilio_message(format_phone_number(phone), message_body)
+            print(f"Password sent to {phone}")
         except Exception as e:
-                print(f"Error sending Message: {e}")
+            print(f"Error sending Message: {e}")
         # Validate required fields
         if not all([phone, password, otp]):
             return Response(

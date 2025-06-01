@@ -12,6 +12,7 @@ from .models import nidUser
 import sys
 import json
 sys.path.append("..")
+from ..config import send_twilio_message
 
 User = get_user_model()
 
@@ -454,26 +455,17 @@ class usersSerializer(serializers.ModelSerializer):
             notifications.save()
             user.save()
             try:
-                account_sid = 'AC01fa514281e583e66f9d1fb293d6010f'
-                auth_token = '1fa05952205a1e544adefef74e7c3a53'
-                client = Client(account_sid, auth_token)
+                message_body = f"""
+                QUICKTRIP OTP
 
-                message = client.messages.create(
-                    body=f"""
-                    QUICKTRIP OTP
+                Hello,
 
-                    Hello,
+                Your Current Password is: {password}
 
-                    Your Current Password is: {password}
+                Please Change Password after Login
+                """
+                send_twilio_message(user.phone_number if user.phone_number.startswith('+') else f'+{user.phone_number}', message_body)
 
-                    Please Change Password after Login
- 
-                    """,
-                    from_='+12674122273',
-                    to= user.phone_number if user.phone_number.startswith('+') else f'+{user.phone_number}'
-                )
-
-                print(f"OTP sent to {user.phone_number}, SID: {message.sid}")
             except Exception as e:
                 print(f"Error sending Message: {e}")
             

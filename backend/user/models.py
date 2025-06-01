@@ -6,8 +6,9 @@ import math
 import sys
 from twilio.rest import Client
 import random
-
 import string
+from ..config import send_twilio_message
+
 sys.path.append("..")
 
 
@@ -144,26 +145,17 @@ class OTP(models.Model):
                 self.code = str(random.randint(100000, 999999))
 
             try:
-                # Send SMS via Twilio
-                account_sid = 'AC01fa514281e583e66f9d1fb293d6010f'
-                auth_token = '1fa05952205a1e544adefef74e7c3a53'
-                client = Client(account_sid, auth_token)
+                message_body = f"""
+                QUICKTRIP OTP
 
-                message = client.messages.create(
-                    body=f"""
-                    QUICKTRIP OTP
+                Hello,
 
-                    Hello,
+                Your OTP is: {self.code}
 
-                    Your OTP is: {self.code}
+                It is valid for 15 minutes.
+                """
+                send_twilio_message(format_phone_number(self.phone_number), message_body)
 
-                    It is valid for 15 minutes.
-                    """,
-                    from_='+12674122273',
-                    to=format_phone_number({self.phone_number})
-                )
-
-                print(f"OTP sent to {self.phone_number}, SID: {message.sid}")
             except Exception as e:
                 print(f"Error sending OTP: {e}")
 
