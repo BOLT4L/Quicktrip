@@ -10,6 +10,7 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import nidUser
 import sys
+import json
 sys.path.append("..")
 
 User = get_user_model()
@@ -40,6 +41,8 @@ class PasswordChangeSerializer(serializers.ModelSerializer):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
+    
+
 class nidSerializer(serializers.ModelSerializer):
     class Meta :
         model = nidUser
@@ -61,10 +64,11 @@ class addtraveller(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id','user_type','phone_number','date_joined','branch','nid']
+
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:
         model = locations
-        fields = "__all__"
+        fields = ['latitude', 'longitude']
 
 class branchSerializer(serializers.ModelSerializer):
     location = LocationSerializer(required=False)
@@ -87,6 +91,7 @@ class branchSerializer(serializers.ModelSerializer):
                 try:
                     location = locations.objects.get(id=location_data['id'])
                     branch.location = location
+                    
                 except locations.DoesNotExist:
                     raise serializers.ValidationError(
                         {'location': 'Referenced location does not exist'}
@@ -97,7 +102,8 @@ class branchSerializer(serializers.ModelSerializer):
                 branch.location = location
             
             branch.save()
-        
+            notifications = notification.objects.create( title = "Branch Created",branch = branch ,message = f"Branch {branch.name} has been created", notification_type = "a")
+            notifications.save()
         return branch
 
     def update(self, instance, validated_data):
@@ -158,7 +164,81 @@ class credSerializer(serializers.ModelSerializer):
              cred.save()
     
         return cred
+class adddriverSerializer(serializers.ModelSerializer):
+    employee = employeSerializer(required=False)
+    location = LocationSerializer(required=False)
+    credentials = credSerializer(required=False)
     
+    branch = serializers.CharField(write_only=True, required=False)  # Accept JSON string here
+    
+    class Meta:
+        model = User
+        fields = [
+            'id', 'user_type', 'is_active', 'nid', 'location',
+            'phone_number', 'date_joined', 'branch', 'employee', 'credentials', 'password'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True, 'required': False},
+        }
+
+    def validate_branch(self, value):
+        """Parse JSON string and validate branch dict"""
+        if not value:
+            return None
+        
+        try:
+            branch_data = json.loads(value)
+        except json.JSONDecodeError:
+            raise serializers.ValidationError("Branch must be a valid JSON string")
+        
+        if not isinstance(branch_data, dict):
+            raise serializers.ValidationError("Branch must be a JSON object")
+        
+        branch_id = branch_data.get('id')
+        if not branch_id:
+            raise serializers.ValidationError("Branch ID is required inside the branch object")
+        
+        if not Branch.objects.filter(id=branch_id).exists():
+            raise serializers.ValidationError("Branch with this ID does not exist")
+        
+        return branch_data
+
+    def create(self, validated_data):
+        employee_data = validated_data.pop('employee', None)
+        credentials_data = validated_data.pop('credentials', None)
+        location_data = validated_data.pop('location', None)
+        branch_data = validated_data.pop('branch', None)
+        password = validated_data.pop('password', None)
+        
+        # branch_data here is a dict, from validate_branch
+        try:
+            user = User.objects.create(**validated_data)
+            if password:
+                user.set_password(password)
+
+            if branch_data and branch_data.get('id'):
+                user.branch_id = branch_data['id']
+
+            if employee_data:
+                user.employee = employeeDetail.objects.create(**employee_data)
+            if credentials_data:
+                user.credentials = credentials.objects.create(**credentials_data)
+            if location_data:
+                user.location = locations.objects.create(**location_data)
+
+            user.save()
+            return user
+
+        except Exception as e:
+            if 'user' in locals():
+                user.delete()
+            raise serializers.ValidationError(f"Failed to create user: {str(e)}")
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        if instance.branch:
+            rep['branch'] = branchSerializer(instance.branch).data
+        return rep
 class userSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
     location = LocationSerializer(required=False)
@@ -244,7 +324,49 @@ class EmployeeDetailSerializer(serializers.ModelSerializer):
 class BranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Branch
-        fields = ['id', 'name', 'address']         
+        fields = ['id', 'name', 'address']      
+
+class OTPSerializer(serializers.ModelSerializer):
+    class Meta :
+        model = OTP
+        fields = ['id', 'phone_number']
+
+class QueueSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Queues
+        fields = '__all__'
+        read_only_fields = ['date', 'time', 'position', 'status']
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = notification
+        fields = '__all__'
+        read_only_fields = ('time', 'date', 'read')
+
+class VehicleLocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = vehicle
+        fields = ['id', 'plate_number', 'location']
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = User
+        fields = ['id', 'phone_number', 'password', 'user_type']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'user_type': {'default': 'u'}
+        }
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            phone_number=validated_data['phone_number'],
+            password=validated_data['password'],
+            user_type=validated_data.get('user_type', 'u'),
+          
+        )
+        return user
 class UserSerializers(serializers.ModelSerializer):
     employee = EmployeeDetailSerializer()
     
@@ -328,8 +450,33 @@ class usersSerializer(serializers.ModelSerializer):
                 user.credentials = credentials.objects.create(**credentials_data)
             if location_data:
                 user.location = locations.objects.create(**location_data)
-
+            notifications = notification.objects.create( title = "Subadmin Registered",branch = user.branch ,user =user,message = f"Sub admin {employee_data['Fname']} {employee_data['Lname']} has been Registerd as {employee_data['position']}", notification_type = "a")
+            notifications.save()
             user.save()
+            try:
+                account_sid = 'AC01fa514281e583e66f9d1fb293d6010f'
+                auth_token = '1fa05952205a1e544adefef74e7c3a53'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages.create(
+                    body=f"""
+                    QUICKTRIP OTP
+
+                    Hello,
+
+                    Your Current Password is: {password}
+
+                    Please Change Password after Login
+ 
+                    """,
+                    from_='+12674122273',
+                    to= user.phone_number if user.phone_number.startswith('+') else f'+{user.phone_number}'
+                )
+
+                print(f"OTP sent to {user.phone_number}, SID: {message.sid}")
+            except Exception as e:
+                print(f"Error sending Message: {e}")
+            
             return user
 
         except Exception as e:
@@ -344,21 +491,27 @@ class usersSerializer(serializers.ModelSerializer):
             representation['branch'] = branchSerializer(instance.branch).data
         return representation
     
-class ExitSlipSerializer(serializers.ModelSerializer):
-    vehicle_plate = serializers.CharField(source='vehicle.plate_number')
-    vehicle_model = serializers.CharField(source='vehicle.Model')
-    driver_name = serializers.CharField(source='driver.employee.Fname')
-    from_location = serializers.CharField(source='from_location.name')
-    to_location = serializers.CharField(source='to_location.name')
 
+class QueueSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ExitSlip
+        model = Queues
         fields = '__all__'
-
 class VehicleExitSlipSerializer(serializers.ModelSerializer):
     class Meta:
         model = vehicle
         fields = ['plate_number', 'Model', 'color', 'sit_number']
+class ExitSlipSerializer(serializers.ModelSerializer):
+    from_location = serializers.CharField(source='from_location.name')
+    to_location = serializers.CharField(source='to_location.name')
+    vehicle = VehicleExitSlipSerializer(required = False)
+    class Meta:
+        model = ExitSlip
+        fields = '__all__'
+class LocationUpdateSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+    latitude = serializers.FloatField()
+    longitude = serializers.FloatField()
+    
 class UserSerializer(serializers.ModelSerializer):
     employee = employeSerializer(required=False)
     branch = branchSerializer(required=False)
@@ -437,11 +590,20 @@ class routeSerializers(serializers.ModelSerializer):
      class Meta:
         model = route
         fields = ['id','name','first_destination','last_destination','route_prize','distance']
+     def create(self, validated_data):
+        
+        routes = route.objects.create(**validated_data)
+        routes.save()
+        notifications = notification.objects.create( title = "Route Created",user = self.context['request'].user ,branch = validated_data.pop('first_destination') ,message = f"Route {validated_data.pop('name')} has been created", notification_type = "a")
+        notifications.save()
+        return routes
+
+
 class vehicleSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = vehicle
-        fields =  ['route','branch','year','insurance_doc','insurance_date','name','plate_number','color','Model','sit_number','picture','is_active','user','types','last_updated']
+        fields =  ['id','route','branch','year','insurance_doc','insurance_date','name','plate_number','color','Model','sit_number','picture','is_active','user','types','last_updated','long','detail','payment_rate','tracking']
 
 class vehiclesSerializer(serializers.ModelSerializer):
     user = userSerializer()
@@ -451,7 +613,7 @@ class vehiclesSerializer(serializers.ModelSerializer):
     route = routeSerializer()
     class Meta : 
         model = vehicle
-        fields =  ['route','branch','year','insurance_doc','insurance_date','name','plate_number','color','Model','sit_number','picture','is_active','user','types','location','last_updated']
+        fields =  ['payment_rate','long','detail','id','route','branch','year','insurance_doc','insurance_date','name','plate_number','color','Model','sit_number','picture','is_active','user','types','location','last_updated','tracking']
 class TokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -474,7 +636,7 @@ class buyticketSerializer(serializers.ModelSerializer):
     
     class Meta :
         model = ticket
-        fields =  ['id','bought_date','route','level','Quantity','takeoff_time','takeoff_date','total_prize','user',]
+        fields =  ['id','bought_date','route','level','Quantity','takeoff_time','takeoff_date','total_prize','user','ticket_type']
 
    
 class paymentSerializer(serializers.ModelSerializer):
@@ -487,7 +649,7 @@ class paymentSerializer(serializers.ModelSerializer):
 class addpaymentSerializer(serializers.ModelSerializer):
     class Meta :
         model = payment
-        fields =['id','user','status','branch','date','time','amount','transaction_id','types','remark','vehicle']
+        fields =['id','user','status','branch','date','time','amount','transaction_id','types','remark','vehicle','tickets',]
         extra_kwargs = {
             'vehicle': {'required': False},
             'amount' :{'required': False},
@@ -509,7 +671,7 @@ class notificationSerilalizer(serializers.ModelSerializer):
     user = userSerializer(required = False)
     class Meta :
         model = notification
-        fields =['id','title','branch','user','message','types','read','time','date']
+        fields =['id','title','branch','user','message','notification_type','read','time','date']
         extra_kwargs = {
             'message': {'required': False},
         }
@@ -525,3 +687,52 @@ class UsertravelSerializer(serializers.ModelSerializer):
     class Meta :
         model = User
         fields = ['id','date_joined','employee','phone_number','nid','travel_history']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    date = serializers.DateField(format="%B %d, %Y")
+    time = serializers.TimeField(format="%I:%M %p")
+    branch = branchSerializer()
+    
+    class Meta:
+        model = notification
+        fields = ['id', 'title', 'message', 'date', 'time', 'read', 
+                 'notification_type', 'branch', 'vehicle']
+
+
+class leaveToQueueSerializer(serializers.Serializer):
+    vehicle_id = serializers.IntegerField()
+class AddToQueueSerializer(serializers.Serializer):
+    branch_id = serializers.IntegerField()
+    user_id = serializers.IntegerField()
+class VehicleLocationSerializer(serializers.ModelSerializer):
+    latitude = serializers.FloatField(source='location.latitude')
+    longitude = serializers.FloatField(source='location.longitude')
+
+    class Meta:
+        model = vehicle
+        fields = ['id', 'name','tracking', 'plate_number', 'color', 'latitude', 'longitude', 'last_updated']
+
+class BoardingSerializer(serializers.Serializer):
+    ticket_id = serializers.IntegerField()
+
+class RetrieveQueueSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(source='branch.name', default="")
+    destination_name = serializers.CharField(source='dest.name', default="")
+    vehicle = serializers.CharField(source='vehicle.plate_number', default="")  
+    level = serializers.CharField(source='level.name', default="")  
+
+
+    class Meta:
+        model = Queues
+        fields = [
+            'branch_name',
+            'destination_name',
+            'position',
+            'level',
+            'vehicle',
+            'current_passengers',
+            'status',
+            'date',
+            'time',
+        ]

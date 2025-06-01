@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'vehicle_management',
     'rest_framework',
     'corsheaders', 
-    'api',
+    'api', 
   
 ]
 
@@ -83,10 +83,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'QTP',
+        'USER': 'postgres',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',  
+        'PORT': '',   
     }
 }
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -115,7 +120,7 @@ STATIC_URL = 'static/'
 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-AUTH_USER_MODEL ='user.user'
+AUTH_USER_MODEL ='user.User'
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWS_CREDENTIALS = True

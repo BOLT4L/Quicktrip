@@ -20,8 +20,7 @@ class ticket(models.Model):
     takeoff_date = models.DateField(null=True)
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     total_prize = models.DecimalField(max_digits=10 , decimal_places=4 ,default=0)
-    
-
+    used = models.BooleanField(default= False)
 class travelhistory(models.Model):
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(payment, on_delete=models.SET_NULL , null= True)

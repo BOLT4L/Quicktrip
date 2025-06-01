@@ -8,6 +8,7 @@ class nidUser(models.Model):
     FAN = models.CharField(max_length=12,unique=True)
     phone_number = models.IntegerField()
     Address = models.CharField(max_length=100, null = True)
+    picture = models.ImageField(upload_to='api/image/profile', null=True)
 # Create your models here.
 
 class Transaction(models.Model):

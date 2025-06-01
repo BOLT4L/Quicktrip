@@ -11,12 +11,12 @@ class notification(models.Model):
     class Type(models.TextChoices):
         REQUEST = 'r', ('Request')
         RESPONSE = 's', ('Response')
-        ALERT = 'a', ('Alert')  # New type for vehicle alerts
-    
+        ALERT = 'a', ('Alert')      
+        PAYMENT = 'p', ('Payment')
     title = models.CharField(max_length=100, null=True)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
-    vehicle = models.ForeignKey(vehicle, on_delete=models.SET_NULL, null=True, blank=True)  # New field
+    vehicle = models.ForeignKey(vehicle, on_delete=models.SET_NULL, null=True, blank=True)  
     message = models.CharField(max_length=300)
     time = models.TimeField(auto_now_add=True)
     date = models.DateField(auto_now_add=True)

@@ -1,4 +1,5 @@
 from django.db import models
+from django.apps import apps
 from vehicle_management.models import vehicle
 from user.models import *
 import sys
@@ -21,3 +22,4 @@ class payment(models.Model):
     transaction_id = models.CharField(max_length=50)
     types = models.CharField(max_length=10,choices=type.choices, default= type.INCOME)
     remark = models.CharField(max_length=100)
+    tickets = models.ForeignKey( 'booking.ticket',on_delete= models.SET_NULL , null=True )

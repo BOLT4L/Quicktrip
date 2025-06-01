@@ -2,15 +2,29 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin ,BaseUserManager
 from django.contrib.auth.hashers import make_password
 from api.models import *
-
+import math
 import sys
+from twilio.rest import Client
+import random
+
+import string
 sys.path.append("..")
 
 
 class locations(models.Model):
-    longitude = models.DecimalField(max_digits=10 , decimal_places=4 ,default=0)
-    latitude = models.DecimalField(max_digits=10 , decimal_places=4 ,default=0)
-
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    tracking = models.BooleanField(default= False)
+    @staticmethod
+    def calculate_distance(lat1, lon1, lat2, lon2):
+        R = 6371  # Earth radius in km
+        dLat = math.radians(lat2 - lat1)
+        dLon = math.radians(lon2 - lon1)
+        a = (math.sin(dLat/2) * math.sin(dLat/2) +
+             math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) *
+             math.sin(dLon/2) * math.sin(dLon/2))
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+        return R * c
     
 class employeeDetail(models.Model):
     Fname = models.CharField(max_length=100,null=True)
@@ -93,6 +107,64 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     def __str__(self):
         return f'{self.id}'
-
-
     
+
+def format_phone_number(phone_number):
+    # Remove all non-digit characters
+    cleaned = ''.join(filter(str.isdigit, phone_number))
+    
+    # Get the last 9 digits (assuming Ethiopian numbers are 9 digits after +251)
+    last_9 = cleaned[-9:]
+    
+    # If the number starts with '0' (local format), remove it
+    if last_9.startswith('0'):
+        last_9 = last_9[1:]
+    
+    # Ensure it's exactly 9 digits (for Ethiopian numbers)
+    if len(last_9) != 9:
+        raise ValueError("Invalid phone number length after formatting")
+    
+    return f"+251{last_9}"
+
+def generate_random_password():
+        """Generate a random 8-character password with letters and digits"""
+        characters = string.ascii_letters + string.digits
+        return ''.join(random.choice(characters) for _ in range(8))
+class OTP(models.Model):
+        phone_number = models.CharField(max_length=15)
+        code = models.CharField(max_length=6, blank=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+
+        def __str__(self):
+            return f'{self.phone_number} - {self.code}'
+
+        def save(self, *args, **kwargs):
+            # Generate OTP only if it's not set
+            if not self.code:
+                self.code = str(random.randint(100000, 999999))
+
+            try:
+                # Send SMS via Twilio
+                account_sid = 'AC01fa514281e583e66f9d1fb293d6010f'
+                auth_token = '1fa05952205a1e544adefef74e7c3a53'
+                client = Client(account_sid, auth_token)
+
+                message = client.messages.create(
+                    body=f"""
+                    QUICKTRIP OTP
+
+                    Hello,
+
+                    Your OTP is: {self.code}
+
+                    It is valid for 15 minutes.
+                    """,
+                    from_='+12674122273',
+                    to=format_phone_number({self.phone_number})
+                )
+
+                print(f"OTP sent to {self.phone_number}, SID: {message.sid}")
+            except Exception as e:
+                print(f"Error sending OTP: {e}")
+
+            return super().save(*args, **kwargs)
