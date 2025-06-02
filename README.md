@@ -6,12 +6,15 @@ Seamless Intercity Transportation System
 
 QuickTrip is a futuristic intercity transportation management system that eliminates common travel hassles such as:
  🕒 Long queues
+
  💸 Price fraud
+ 
  ⚠️ Trip safety concerns
 
 Acting as a smart intermediary between passengers and private transport operators, QuickTrip delivers a tech-driven solution through:
 
  📱 A sleek Mobile App for passengers
+ 
  🖥️ An intelligent Admin Dashboard for system management
 
   📱 Mobile App Features
