@@ -1,1 +1,1 @@
-env
+".env\n.env.local\n.env.*.local\n__pycache__/\n*.py[cod]\n*$py.class\n*.so\n.Python\nbuild/\ndist/\n*.egg-info/\nvenv/\nenv/\nENV/\n.venv/\n.env/\n.idea/\n.vscode/\n*.swp\n*.swo\n.DS_Store\n*.log\nlocal_settings.py\ndb.sqlite3\ndb.sqlite3-journal\nmedia/\nstatic/\n*.bak\n*.tmp\n*~" 
