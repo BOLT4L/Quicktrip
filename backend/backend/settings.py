@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -93,7 +92,8 @@ DATABASES = {
     }
 }
 database_url = os.environ.get('DATABASE_URL')
-DATABASES['default'] = dj_database_url.parse(database_url)
+if database_url:
+    DATABASES['default'] = dj_database_url.parse(database_url)
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
