@@ -7,6 +7,8 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
     lastName: initialData?.nid?.Lname || '',
     nationalId: initialData?.nid?.FAN || '',
     phoneNumber: initialData?.phone_number || '',
+    emergencyContactName: initialData?.emergency_contact_name || '',
+    emergencyContactPhone: initialData?.emergency_contact_phone || '',
     address: initialData?.nid?.Address || '',
   });
 
@@ -15,28 +17,32 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // National ID validation (16 digits)
-    if (!/^\d{16}$/.test(formData.nationalId)) {
-      newErrors.nationalId = 'National ID must be exactly 16 digits';
+    // National ID validation (numbers only)
+    if (!/^\d+$/.test(formData.nationalId)) {
+      newErrors.nationalId = 'National ID must contain only numbers';
     }
 
-    // Phone number validation (0 followed by 9 digits)
+    // Phone number validation (starts with 0, 10 digits)
     if (!/^0\d{9}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Phone number must start with 0 followed by 9 digits (10 digits total)';
+      newErrors.phoneNumber = 'Phone number must start with 0 and be 10 digits long';
     }
 
-    // Name validations
-    if (!/^[A-Za-z\s]{2,50}$/.test(formData.firstName)) {
-      newErrors.firstName = 'First name must be 2-50 characters long and contain only letters';
+    // Emergency contact phone validation (starts with 0, 10 digits)
+    if (!/^0\d{9}$/.test(formData.emergencyContactPhone)) {
+      newErrors.emergencyContactPhone = 'Emergency contact phone must start with 0 and be 10 digits long';
     }
 
-    if (!/^[A-Za-z\s]{2,50}$/.test(formData.lastName)) {
-      newErrors.lastName = 'Last name must be 2-50 characters long and contain only letters';
+    // Name validations (letters only)
+    if (!/^[A-Za-z\s]+$/.test(formData.firstName)) {
+      newErrors.firstName = 'First name must contain only letters';
     }
 
-    // Address validation
-    if (formData.address.trim().length < 5) {
-      newErrors.address = 'Address must be at least 5 characters long';
+    if (!/^[A-Za-z\s]+$/.test(formData.lastName)) {
+      newErrors.lastName = 'Last name must contain only letters';
+    }
+
+    if (!/^[A-Za-z\s]+$/.test(formData.emergencyContactName)) {
+      newErrors.emergencyContactName = 'Emergency contact name must contain only letters';
     }
 
     setErrors(newErrors);
@@ -47,18 +53,31 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
     const { name, value } = e.target;
     let formattedValue = value;
 
-    // Format phone number to always start with 0
-    if (name === 'phoneNumber') {
-      if (!value.startsWith('0')) {
-        formattedValue = '0' + value.replace(/^0/, '');
-      }
-      // Remove any non-digit characters and limit to 10 digits
-      formattedValue = formattedValue.replace(/\D/g, '').slice(0, 10);
-    }
+    // Handle different input types
+    switch (name) {
+      case 'phoneNumber':
+      case 'emergencyContactPhone':
+        // Format phone numbers (start with 0, numbers only)
+        if (!value.startsWith('0')) {
+          formattedValue = '0' + value.replace(/^0/, '');
+        }
+        formattedValue = formattedValue.replace(/\D/g, '').slice(0, 10);
+        break;
 
-    // For national ID, only allow digits
-    if (name === 'nationalId') {
-      formattedValue = value.replace(/\D/g, '');
+      case 'nationalId':
+        // Numbers only for National ID
+        formattedValue = value.replace(/\D/g, '');
+        break;
+
+      case 'firstName':
+      case 'lastName':
+      case 'emergencyContactName':
+        // Letters only for names
+        formattedValue = value.replace(/[^A-Za-z\s]/g, '');
+        break;
+
+      default:
+        formattedValue = value;
     }
 
     setFormData(prev => ({
@@ -66,7 +85,7 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
       [name]: formattedValue
     }));
 
-    // Clear error when user starts typing
+    // Clear error when user is typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -85,7 +104,9 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           FAN: formData.nationalId,
           Address: formData.address
         },
-        phone_number: formData.phoneNumber
+        phone_number: formData.phoneNumber,
+        emergency_contact_name: formData.emergencyContactName,
+        emergency_contact_phone: formData.emergencyContactPhone
       });
     }
   };
@@ -93,7 +114,7 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
   return (
     <form onSubmit={handleSubmit} className="passenger-form">
       <div className="form-group">
-        <label htmlFor="firstName">First Name:</label>
+        <label htmlFor="firstName">First Name*</label>
         <input
           type="text"
           id="firstName"
@@ -101,12 +122,14 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           value={formData.firstName}
           onChange={handleChange}
           className={errors.firstName ? 'error' : ''}
+          placeholder="Enter letters only"
+          required
         />
         {errors.firstName && <span className="error-message">{errors.firstName}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="lastName">Last Name:</label>
+        <label htmlFor="lastName">Last Name</label>
         <input
           type="text"
           id="lastName"
@@ -114,27 +137,27 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           value={formData.lastName}
           onChange={handleChange}
           className={errors.lastName ? 'error' : ''}
+          placeholder="Enter letters only"
         />
         {errors.lastName && <span className="error-message">{errors.lastName}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="nationalId">National ID:</label>
+        <label htmlFor="nationalId">National ID</label>
         <input
           type="text"
           id="nationalId"
           name="nationalId"
           value={formData.nationalId}
           onChange={handleChange}
-          maxLength={16}
           className={errors.nationalId ? 'error' : ''}
-          placeholder="Enter 16 digit number"
+          placeholder="Enter numbers only"
         />
         {errors.nationalId && <span className="error-message">{errors.nationalId}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="phoneNumber">Phone Number:</label>
+        <label htmlFor="phoneNumber">Phone Number</label>
         <input
           type="text"
           id="phoneNumber"
@@ -143,13 +166,42 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           onChange={handleChange}
           maxLength={10}
           className={errors.phoneNumber ? 'error' : ''}
-          placeholder="0"
+          placeholder="Start with 0 (10 digits)"
         />
         {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
       </div>
 
       <div className="form-group">
-        <label htmlFor="address">Address:</label>
+        <label htmlFor="emergencyContactName">Emergency Contact Name</label>
+        <input
+          type="text"
+          id="emergencyContactName"
+          name="emergencyContactName"
+          value={formData.emergencyContactName}
+          onChange={handleChange}
+          className={errors.emergencyContactName ? 'error' : ''}
+          placeholder="Enter letters only"
+        />
+        {errors.emergencyContactName && <span className="error-message">{errors.emergencyContactName}</span>}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="emergencyContactPhone">Emergency Contact Phone Number</label>
+        <input
+          type="text"
+          id="emergencyContactPhone"
+          name="emergencyContactPhone"
+          value={formData.emergencyContactPhone}
+          onChange={handleChange}
+          maxLength={10}
+          className={errors.emergencyContactPhone ? 'error' : ''}
+          placeholder="Start with 0 (10 digits)"
+        />
+        {errors.emergencyContactPhone && <span className="error-message">{errors.emergencyContactPhone}</span>}
+      </div>
+
+      <div className="form-group">
+        <label htmlFor="address">Address</label>
         <input
           type="text"
           id="address"
