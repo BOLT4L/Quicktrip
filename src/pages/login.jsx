@@ -13,17 +13,17 @@ function Login() {
     const [phoneError, setPhoneError] = useState("")
 
     const validatePhoneNumber = (number) => {
-      const phoneRegex = /^\+251\d{9}$/;
+      const phoneRegex = /^0\d{9}$/;
       return phoneRegex.test(number);
     };
 
     const formatPhoneNumber = (value) => {
-      // If the value doesn't start with +251, add it
-      if (!value.startsWith('+251')) {
-        value = '+251' + value.replace(/^\+251/, '');
+      // If the value doesn't start with 0, add it
+      if (!value.startsWith('0')) {
+        value = '0' + value.replace(/^0/, '');
       }
-      // Remove any non-digit characters except the leading +
-      return value.replace(/[^\d+]/g, '');
+      // Remove any non-digit characters
+      return value.replace(/\D/g, '').slice(0, 10);
     };
 
     const handlePhoneChange = (e) => {
@@ -41,14 +41,14 @@ function Login() {
       
       // Validate phone number before submission
       if (!validatePhoneNumber(phone_number)) {
-        setPhoneError("Phone number must start with +251 followed by 9 digits");
+        setPhoneError("Phone number must start with 0 followed by 9 digits (10 digits total)");
         return;
       }
 
       setLoading(true);
 
       try {
-          const res = await api.post('/api/token',{ phone_number,password})
+          const res = await api.post('/api/token',{ phone_number, password})
            
           const decoded = jwtDecode(res.data.access)
           const role = decoded.role
@@ -103,7 +103,8 @@ function Login() {
                 value={phone_number}
                 onChange={handlePhoneChange}
                 required
-                placeholder="+251"
+                placeholder="0"
+                maxLength={10}
               />
               <span className="input-focus-effect"></span>
             </div>

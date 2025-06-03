@@ -20,9 +20,9 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
       newErrors.nationalId = 'National ID must be exactly 16 digits';
     }
 
-    // Phone number validation (+251 followed by 9 digits)
-    if (!/^\+251\d{9}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Phone number must start with +251 followed by 9 digits';
+    // Phone number validation (0 followed by 9 digits)
+    if (!/^0\d{9}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = 'Phone number must start with 0 followed by 9 digits (10 digits total)';
     }
 
     // Name validations
@@ -47,13 +47,13 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
     const { name, value } = e.target;
     let formattedValue = value;
 
-    // Format phone number to always include +251
+    // Format phone number to always start with 0
     if (name === 'phoneNumber') {
-      if (!value.startsWith('+251')) {
-        formattedValue = '+251' + value.replace(/^\+251/, '');
+      if (!value.startsWith('0')) {
+        formattedValue = '0' + value.replace(/^0/, '');
       }
-      // Remove any non-digit characters except the leading +
-      formattedValue = formattedValue.replace(/[^\d+]/g, '');
+      // Remove any non-digit characters and limit to 10 digits
+      formattedValue = formattedValue.replace(/\D/g, '').slice(0, 10);
     }
 
     // For national ID, only allow digits
@@ -141,8 +141,9 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleChange}
+          maxLength={10}
           className={errors.phoneNumber ? 'error' : ''}
-          placeholder="+251"
+          placeholder="0"
         />
         {errors.phoneNumber && <span className="error-message">{errors.phoneNumber}</span>}
       </div>
