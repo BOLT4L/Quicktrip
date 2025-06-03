@@ -10,11 +10,42 @@ function Login() {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState({ type: "", text: "" })
+    const [phoneError, setPhoneError] = useState("")
 
+    const validatePhoneNumber = (number) => {
+      const phoneRegex = /^\+251\d{9}$/;
+      return phoneRegex.test(number);
+    };
+
+    const formatPhoneNumber = (value) => {
+      // If the value doesn't start with +251, add it
+      if (!value.startsWith('+251')) {
+        value = '+251' + value.replace(/^\+251/, '');
+      }
+      // Remove any non-digit characters except the leading +
+      return value.replace(/[^\d+]/g, '');
+    };
+
+    const handlePhoneChange = (e) => {
+      let formattedNumber = formatPhoneNumber(e.target.value);
+      setPhonenumber(formattedNumber);
+      
+      // Clear error when user is typing
+      if (phoneError) {
+        setPhoneError("");
+      }
+    };
 
     const handleSubmit = async (e) =>{
-      setLoading(true);
       e.preventDefault();
+      
+      // Validate phone number before submission
+      if (!validatePhoneNumber(phone_number)) {
+        setPhoneError("Phone number must start with +251 followed by 9 digits");
+        return;
+      }
+
+      setLoading(true);
 
       try {
           const res = await api.post('/api/token',{ phone_number,password})
@@ -30,15 +61,11 @@ function Login() {
           localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
           console.log(role)
           window.location.href = '/home';
-          
-
       }
       catch (error) {
-        
         setMessage({ 
           type: 'error',
           text: "Wrong credentials",
-         
         });
       }
       finally{
@@ -57,8 +84,6 @@ function Login() {
           <p className="login-subtitle"> Dashboard</p>
         </div>
 
-     
-       
         <form onSubmit={handleSubmit}>
         {message.text && (
             <div className={`alert ${message.type === "success" ? "alert-success" : "alert-error"}`}>
@@ -67,22 +92,22 @@ function Login() {
           )}
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">
+            <label htmlFor="phone_number" className="form-label">
               Phone number
             </label>
             <div className="input-wrapper">
               <input
-                 
-                 type="number"
-                 id="phonenumber"
-                className="form-control"
+                type="text"
+                id="phone_number"
+                className={`form-control ${phoneError ? 'error' : ''}`}
                 value={phone_number}
-                onChange={(e) => setPhonenumber(e.target.value)}
+                onChange={handlePhoneChange}
                 required
-                placeholder="Phone number"
+                placeholder="+251"
               />
               <span className="input-focus-effect"></span>
             </div>
+            {phoneError && <div className="error-message">{phoneError}</div>}
           </div>
 
           <div className="form-group">
@@ -91,10 +116,8 @@ function Login() {
             </label>
             <div className="input-wrapper">
               <input
-         
                 className="form-control"
                 id="password"
-                
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -108,11 +131,9 @@ function Login() {
             {loading ? "Logging in..." : `Login `}
           </button>
         </form>
-       
 
         <div className="login-footer">
           <p>For Admin and subadmin users only</p>
-          
         </div>
       </div>
 
@@ -358,6 +379,21 @@ function Login() {
           .login-btn {
             padding: 10px;
           }
+        }
+
+        .error-message {
+          color: #ff4d4f;
+          font-size: 14px;
+          margin-top: 5px;
+        }
+
+        .form-control.error {
+          border-color: #ff4d4f;
+        }
+
+        input[type="text"]#phone_number {
+          font-family: monospace;
+          letter-spacing: 1px;
         }
       `}</style>
     </div>
