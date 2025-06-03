@@ -17,7 +17,7 @@ Acting as a smart intermediary between passengers and private transport operator
  
  🖥️ An intelligent Admin Dashboard for system management
 
-  📱 Mobile App Features
+📱 Mobile App Features
 
 🔍 Search & Book
 Instantly find destinations and book seats in real time
