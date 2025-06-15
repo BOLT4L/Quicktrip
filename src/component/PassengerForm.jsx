@@ -17,9 +17,9 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
   const validateForm = () => {
     const newErrors = {};
 
-    // National ID validation (numbers only)
-    if (!/^\d+$/.test(formData.nationalId)) {
-      newErrors.nationalId = 'National ID must contain only numbers';
+    // National ID validation (exactly 12 digits)
+    if (!/^\d{12}$/.test(formData.nationalId)) {
+      newErrors.nationalId = 'National ID must be exactly 12 digits';
     }
 
     // Phone number validation (starts with 0, 10 digits)
@@ -65,8 +65,8 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
         break;
 
       case 'nationalId':
-        // Numbers only for National ID
-        formattedValue = value.replace(/\D/g, '');
+        // Numbers only for National ID and limit to 12 digits
+        formattedValue = value.replace(/\D/g, '').slice(0, 12);
         break;
 
       case 'firstName':
@@ -150,8 +150,9 @@ const PassengerForm = ({ onSubmit, initialData = null }) => {
           name="nationalId"
           value={formData.nationalId}
           onChange={handleChange}
+          maxLength={12}
           className={errors.nationalId ? 'error' : ''}
-          placeholder="Enter numbers only"
+          placeholder="Enter 12 digit number"
         />
         {errors.nationalId && <span className="error-message">{errors.nationalId}</span>}
       </div>

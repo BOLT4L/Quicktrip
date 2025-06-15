@@ -12,6 +12,8 @@ import {
   Legend,
 } from 'chart.js';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 ChartJS.register(
   CategoryScale,
@@ -76,8 +78,9 @@ function StationStats({ station, passengers, vehicles, report }) {
         label: 'Monthly Passengers',
         data: passengerCounts,
         borderColor: 'rgb(75, 192, 192)',
-        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+        backgroundColor: 'rgba(75, 192, 192, 0.1)',
         tension: 0.4,
+        fill: true,
       },
     ],
   };
@@ -88,7 +91,7 @@ function StationStats({ station, passengers, vehicles, report }) {
       {
         label: 'Monthly Revenue (ETB)',
         data: revenueCounts,
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        backgroundColor: 'rgba(54, 162, 235, 0.7)',
         borderColor: 'rgb(54, 162, 235)',
         borderWidth: 1,
       },
@@ -132,92 +135,71 @@ function StationStats({ station, passengers, vehicles, report }) {
       legend: {
         position: 'top',
       },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      },
     },
+    scales: {
+      y: {
+        beginAtZero: true,
+      }
+    },
+    interaction: {
+      mode: 'nearest',
+      axis: 'x',
+      intersect: false
+    }
   };
 
   return (
-    <div className="stats-container">
-      <div className="chart-row">
-        <div className="chart-container">
-          <h3>Passenger Trends</h3>
-          <div className="chart-wrapper">
+    <div className="grid gap-4 md:grid-cols-2">
+      <Card>
+        <CardHeader>
+          <CardTitle>Passenger Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
             <Line data={passengerData} options={chartOptions} />
           </div>
-        </div>
-        <div className="chart-container">
-          <h3>Revenue Analysis</h3>
-          <div className="chart-wrapper">
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue Analysis</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
             <Bar data={revenueData} options={chartOptions} />
           </div>
-        </div>
-      </div>
-      <div className="chart-row">
-        <div className="chart-container">
-          <h3>Vehicle Distribution</h3>
-          <div className="chart-wrapper donut-wrapper">
-            <Doughnut data={vehicleData} options={{
-              ...chartOptions,
-              plugins: {
-                ...chartOptions.plugins,
-                legend: {
-                  ...chartOptions.plugins.legend,
-                  position: 'right',
-                },
-              },
-            }} />
+        </CardContent>
+      </Card>
+
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>Vehicle Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] flex justify-center">
+            <div className="w-[400px]">
+              <Doughnut 
+                data={vehicleData} 
+                options={{
+                  ...chartOptions,
+                  plugins: {
+                    ...chartOptions.plugins,
+                    legend: {
+                      ...chartOptions.plugins.legend,
+                      position: 'right',
+                    },
+                  },
+                }} 
+              />
+            </div>
           </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .stats-container {
-          margin-top: 30px;
-          padding: 20px;
-          background-color: var(--bg-secondary);
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .chart-row {
-          display: flex;
-          gap: 20px;
-          margin-bottom: 20px;
-        }
-
-        .chart-container {
-          flex: 1;
-          background: white;
-          padding: 20px;
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        }
-
-        .chart-container h3 {
-          margin: 0 0 15px 0;
-          color: var(--text-primary);
-          font-size: 1.1rem;
-          font-weight: 600;
-        }
-
-        .chart-wrapper {
-          height: 300px;
-          position: relative;
-        }
-
-        .donut-wrapper {
-          height: 400px;
-        }
-
-        @media (max-width: 992px) {
-          .chart-row {
-            flex-direction: column;
-          }
-
-          .chart-container {
-            margin-bottom: 20px;
-          }
-        }
-      `}</style>
+        </CardContent>
+      </Card>
     </div>
   );
 }
