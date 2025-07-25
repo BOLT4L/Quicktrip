@@ -77,21 +77,17 @@ To get a local copy of Quick Trip up and running, follow these steps.
 
 # Installation
 Clone the Repository:
-
 git clone https://github.com/BOLT4L/Quicktrip/
 
-
-Backend Setup (Django):
+# Backend Setup (Django):
 
 # Create a virtual environment
 python -m venv venv
 source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 
 # Install dependencies
-pip install -r requirements.txt
+pip install -r requirements.text
 
-# Configure database (update settings.py with your PostgreSQL details)
-# Set up environment variables for sensitive data (e.g., database credentials, JWT secret, Google Maps API key)
 
 # Run database migrations
 python backend/manage.py migrate
@@ -102,24 +98,23 @@ python backend/manage.py createsuperuser
 # Run the Django development server
 python backend/manage.py runserver
 
-The backend will typically run on http://localhost:8000.
+The backend will typically run on http://localhost:8000
 
 Frontend Setup (React):
 
 cd frontend
 
 # Install dependencies
-npm install # or yarn install
+npm install  or yarn install
 
+# Change api gateway 
+Inside the .env fiel change url ot = http://localhost:8000
+  
 # Run the React development server
-npm start # or yarn start
+npm run dev or yarn start
 
 The frontend will typically run on http://localhost:5173/ 
 
-
-Follow standard React Native setup instructions.
-
-Ensure the mobile app's API calls point to your deployed backend.
 
 Deployment to AWS EC2
 Refer to the Implementing HTTPS for Your Web Application on AWS EC2 guide for detailed steps on deploying your Django backend to EC2 and securing it with HTTPS using Nginx/Apache or an Application Load Balancer (ALB). Remember to configure CORS on your Django backend to allow requests from your frontend's domain.
