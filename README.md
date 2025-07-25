@@ -79,7 +79,7 @@ To get a local copy of Quick Trip up and running, follow these steps.
 Clone the Repository:
 
 git clone https://github.com/BOLT4L/Quicktrip/
-cd quick-trip
+
 
 Backend Setup (Django):
 
