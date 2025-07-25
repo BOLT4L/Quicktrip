@@ -181,7 +181,7 @@ export default function Passengers() {
                                   <td>{new Date(trip.time).toLocaleDateString()}</td>
                                   <td>{trip.ticket.route.first_destination?.name}</td>
                                   <td>{trip.ticket.route.last_destination?.name}</td>
-                                  <td>{trip.payment.amount} ETB</td>
+                                  <td>{parseFloat(trip.payment.amount).toFixed(2)} ETB</td>
                                   <td>{trip.ticket.Quantity}</td>
                                   <td>
                                     <button className="btn btn-sm btn-primary" onClick={() => handleTripSelect(trip)}>
@@ -254,7 +254,7 @@ export default function Passengers() {
                           <div className="info-icon">💰</div>
                           <div className="info-content">
                             <div className="info-label">Fare</div>
-                            <div className="info-value">${selectedTrip.payment.amount}</div>
+                            <div className="info-value">${parseFloat(selectedTrip.payment.amount).toFixed(2)}</div>
                           </div>
                         </div>
                         <div className="trip-info-item">  

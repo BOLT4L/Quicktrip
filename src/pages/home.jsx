@@ -107,16 +107,16 @@ function Report() {
               <h1>
                 {greeting},{' '}
                 {user?.employee 
-                  ? `${user.employee?.Fname} ${user.employee?.Lname}`
+                  ? `${user.employee.Fname} ${user.employee.Lname}`
                   : 'User'
                 }!
               </h1>
             )}
             {!showGreeting && (
               <h1>
-                 {user
+                 {user?.branch
                   ? `${user.branch?.name} `
-                  : 'No brnach'
+                  : 'No branch Assigned'
                 }
               </h1>
             )}

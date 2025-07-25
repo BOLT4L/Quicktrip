@@ -1,3 +1,8 @@
+// StationEdit.jsx
+// This component renders a modal dialog for editing a station's details (name, address, type, latitude, longitude).
+// It fetches the current station data, validates user input, and submits changes to the backend API.
+// Shows error messages and disables the form while saving.
+
 import { useState, useEffect } from "react";
 import api from "../api";
 
@@ -12,6 +17,7 @@ function StationEdit({ onClose, station, onSave }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Populate form with station data when station changes
   useEffect(() => {
     if (station) {
       setFormData({
@@ -24,11 +30,11 @@ function StationEdit({ onClose, station, onSave }) {
     }
   }, [station]);
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const res = await api.put(`api/branch/${station.id}/`, formData);
       if (res.status === 200) {
@@ -42,6 +48,7 @@ function StationEdit({ onClose, station, onSave }) {
     }
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -56,10 +63,11 @@ function StationEdit({ onClose, station, onSave }) {
         <div className="modal-header">
           <h2>Edit Station</h2>
           <button className="close-button" onClick={onClose}>
-            ×
+            &times;
           </button>
         </div>
         <form onSubmit={handleSubmit}>
+          {/* Station name field */}
           <div className="form-group">
             <label htmlFor="name">Station Name</label>
             <input
@@ -71,6 +79,7 @@ function StationEdit({ onClose, station, onSave }) {
               required
             />
           </div>
+          {/* Address field */}
           <div className="form-group">
             <label htmlFor="address">Address</label>
             <input
@@ -82,6 +91,7 @@ function StationEdit({ onClose, station, onSave }) {
               required
             />
           </div>
+          {/* Type field */}
           <div className="form-group">
             <label htmlFor="type">Type</label>
             <select
@@ -96,6 +106,7 @@ function StationEdit({ onClose, station, onSave }) {
               <option value="m">Main</option>
             </select>
           </div>
+          {/* Latitude field */}
           <div className="form-group">
             <label htmlFor="latitude">Latitude</label>
             <input
@@ -108,6 +119,7 @@ function StationEdit({ onClose, station, onSave }) {
               required
             />
           </div>
+          {/* Longitude field */}
           <div className="form-group">
             <label htmlFor="longitude">Longitude</label>
             <input
@@ -120,6 +132,7 @@ function StationEdit({ onClose, station, onSave }) {
               required
             />
           </div>
+          {/* Error message */}
           {error && <div className="error-message">{error}</div>}
           <div className="modal-footer">
             <button type="button" className="btn btn-secondary" onClick={onClose}>
@@ -131,7 +144,7 @@ function StationEdit({ onClose, station, onSave }) {
           </div>
         </form>
       </div>
-
+      {/* Modal styling for overlay and modal content */}
       <style jsx>{`
         .modal-overlay {
           position: fixed;
@@ -145,7 +158,6 @@ function StationEdit({ onClose, station, onSave }) {
           align-items: center;
           z-index: 1000;
         }
-
         .modal {
           background: white;
           border-radius: 8px;
@@ -155,31 +167,26 @@ function StationEdit({ onClose, station, onSave }) {
           max-height: 90vh;
           overflow-y: auto;
         }
-
         .modal-header {
           display: flex;
           justify-content: space-between;
           align-items: center;
           margin-bottom: 20px;
         }
-
         .close-button {
           background: none;
           border: none;
           font-size: 24px;
           cursor: pointer;
         }
-
         .form-group {
           margin-bottom: 15px;
         }
-
         label {
           display: block;
           margin-bottom: 5px;
           font-weight: 500;
         }
-
         input, select {
           width: 100%;
           padding: 8px;
@@ -187,7 +194,6 @@ function StationEdit({ onClose, station, onSave }) {
           border-radius: 4px;
           font-size: 14px;
         }
-
         .error-message {
           color: #dc3545;
           margin-bottom: 15px;
@@ -195,14 +201,12 @@ function StationEdit({ onClose, station, onSave }) {
           background-color: #f8d7da;
           border-radius: 4px;
         }
-
         .modal-footer {
           display: flex;
           justify-content: flex-end;
           gap: 10px;
           margin-top: 20px;
         }
-
         .btn {
           padding: 8px 16px;
           border-radius: 4px;
@@ -210,17 +214,14 @@ function StationEdit({ onClose, station, onSave }) {
           cursor: pointer;
           font-weight: 500;
         }
-
         .btn-primary {
           background-color: #007bff;
           color: white;
         }
-
         .btn-primary:disabled {
           background-color: #ccc;
           cursor: not-allowed;
         }
-
         .btn-secondary {
           background-color: #6c757d;
           color: white;

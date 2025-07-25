@@ -1,29 +1,28 @@
-import { useState, useEffect } from "react";
-import api from "../api";
+import { useState, useEffect } from "react"
+import api from '../api';
 import Sidebar from "../component/sidebar";
 import Header from "../component/Header";
 
 export default function TicketPurchase() {
-  const [showTicketModal, setShowTicketModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [tickets, setTickets] = useState([]);
-  const [routes, setRoutes] = useState([]);
-  const [levels, setLevels] = useState([]);
-  const [ticketTypes, setTicketTypes] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-
+  const [showTicketModal, setShowTicketModal] = useState(false)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filterType, setFilterType] = useState("all")
+  const [tickets, setTickets] = useState([])
+  const [routes, setRoutes] = useState([])
+  const [levels, setLevels] = useState([])
+  const [ticketTypes, setTicketTypes] = useState([])
+  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true)
+  
   useEffect(() => {
     fetchTickets();
     fetchLevel();
     fetchRoutes();
     fetchTicketTypes();
-  }, []);
+  }, [])
 
   const fetchTickets = () => {
-    api
-      .get("api/tickets/")
+    api.get('api/tickets/')
       .then((res) => {
         setTickets(res.data);
         setLoading(false);
@@ -35,67 +34,65 @@ export default function TicketPurchase() {
   };
 
   const fetchRoutes = () => {
-    api
-      .get("api/route/")
+    api.get('api/route/')
       .then((res) => setRoutes(res.data))
       .catch((err) => setError(err.message));
   };
-
-  const fetchLevel = () => {
-    api
-      .get("api/level/")
+  
+  const fetchLevel= () => {
+    api.get('api/level/')
       .then((res) => setLevels(res.data))
       .catch((err) => setError(err.message));
   };
 
   const fetchTicketTypes = () => {
+ 
     setTicketTypes([
       { value: "L", label: "Long Distance" },
-      { value: "S", label: "Short Distance" },
+      { value: "S", label: "Short Distance" }
     ]);
-  };
-  const [loadings, setLoadings] = useState(false);
+  };const [loadings, setLoadings] = useState(false);
 
   const initiatePayment = async () => {
     setLoadings(true);
     try {
-      const response = await fetch("http://18.217.57.66:8000/api/payment/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: 500.0 }),
+     
+      const response = await fetch('http://127.0.0.1:8000/api/payment/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 500.00 }),
       });
-      window.location.href = response.url;
+      window.location.href = response.url;  
     } catch (error) {
       console.log("Payment initiation failed!");
       setLoadings(false);
     }
   };
 
+
   const handlePurchaseTicket = (newTicket) => {
-    api
-      .post("api/tickets/", newTicket)
+    api.post('api/tickets/', newTicket)
       .then((res) => {
         setTickets([res.data, ...tickets]);
         setShowTicketModal(false);
       })
       .catch((err) => setError(err.message));
-  };
+  }
   const filteredTickets = tickets.filter((ticket) => {
-    const routeName = ticket.route?.name?.toLowerCase() || "";
-    const ticketType = ticket.ticket_type?.toLowerCase() || "";
-    const username = ticket.user?.username?.toLowerCase() || "";
-
+    
+    const routeName = ticket.route?.name?.toLowerCase() || '';
+    const ticketType = ticket.ticket_type?.toLowerCase() || '';
+    const username = ticket.user?.username?.toLowerCase() || '';
+    
     const matchesSearch =
       routeName.includes(searchTerm.toLowerCase()) ||
       ticketType.includes(searchTerm.toLowerCase()) ||
       username.includes(searchTerm.toLowerCase());
-
+  
     if (filterType === "all") return matchesSearch;
-    if (filterType === "L")
-      return matchesSearch && ticket.ticket_type?.toUpperCase() === "L";
-    if (filterType === "S")
-      return matchesSearch && ticket.ticket_type?.toUpperCase() === "S";
-
+    if (filterType === "L") return matchesSearch && ticket.ticket_type?.toUpperCase() === "L";
+    if (filterType === "S") return matchesSearch && ticket.ticket_type?.toUpperCase() === "S";
+    
     return matchesSearch;
   });
 
@@ -107,8 +104,8 @@ export default function TicketPurchase() {
         <div className="page-header">
           <h1>Ticket Purchase</h1>
           <div className="header-actions">
-            <button
-              className="btn btn-primary"
+            <button 
+              className="btn btn-primary" 
               onClick={() => setShowTicketModal(true)}
             >
               Buy New Ticket
@@ -127,6 +124,7 @@ export default function TicketPurchase() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+
           </div>
 
           <div className="table-container">
@@ -159,10 +157,7 @@ export default function TicketPurchase() {
                 ) : (
                   filteredTickets.map((ticket) => (
                     <tr key={ticket.id}>
-                      <td>
-                        {ticket.get_ticket_type_display ||
-                          (ticket.ticket_type === "L" ? "Long" : "Short")}
-                      </td>
+                      <td>{ticket.get_ticket_type_display || (ticket.ticket_type === "L" ? "Long" : "Short")}</td>
                       <td>{ticket.route?.name || "N/A"}</td>
                       <td>{ticket.level?.level || "N/A"}</td>
                       <td>{ticket.Quantity}</td>
@@ -181,11 +176,11 @@ export default function TicketPurchase() {
         </div>
 
         {showTicketModal && (
-          <TicketPurchaseModal
-            onClose={() => setShowTicketModal(false)}
-            pay={() => initiatePayment()}
+          <TicketPurchaseModal 
+            onClose={() => setShowTicketModal(false)} 
+            pay = {()=>initiatePayment()}
             routes={routes}
-            levels={levels}
+            levels = {levels}
             ticketTypes={ticketTypes}
           />
         )}
@@ -239,7 +234,7 @@ export default function TicketPurchase() {
         }
       `}</style>
     </div>
-  );
+  )
 }
 function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
   const [selectedRoute, setSelectedRoute] = useState("");
@@ -255,14 +250,14 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
     Quantity: 1,
     takeoff_time: "",
     takeoff_date: "",
-    total_prize: 0,
+    total_prize: 0
   });
 
   const [pformData, setpFormData] = useState({
-    status: "c",
+    status: 'c',
     transaction_id: "12132xw1212",
-    types: "i",
-    remark: "Ticket Purchase",
+    types: 'i',
+    remark: 'Ticket Purchase',
   });
 
   // Debounce search to avoid too many API calls
@@ -300,9 +295,9 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -314,17 +309,17 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
         return;
       }
 
-      pformData["user"] = selectedUser.id;
-      pformData["branch"] = selectedRoute.first_destination;
-      pformData["amount"] = formData.total_prize;
-
-      formData["user"] = selectedUser.id;
-      formData["route"] = selectedRoute.id;
-      formData["level"] = selectedLevel.id;
+      pformData['user'] = selectedUser.id;
+      pformData['branch'] = selectedRoute.first_destination;
+      pformData['amount'] = formData.total_prize;
+      
+      formData['user'] = selectedUser.id;
+      formData['route'] = selectedRoute.id;
+      formData['level'] = selectedLevel.id;
 
       api.post(`api/addpayments/`, pformData);
       api.post(`api/ticket/`, formData);
-
+      
       // Call the pay function if provided
       if (pay) {
         pay();
@@ -339,9 +334,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
       <div className="modal">
         <div className="modal-header">
           <h2>Purchase New Ticket</h2>
-          <button className="close-btn" onClick={onClose}>
-            ×
-          </button>
+          <button className="close-btn" onClick={onClose}>×</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="form-group search-container">
@@ -357,12 +350,10 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
                 }}
                 placeholder="Enter phone number"
               />
-              {isSearching && (
-                <div className="search-spinner">Searching...</div>
-              )}
+              {isSearching && <div className="search-spinner">Searching...</div>}
               {showDropdown && users.length > 0 && (
                 <div className="search-dropdown">
-                  {users.map((user) => (
+                  {users.map(user => (
                     <div
                       key={user.id}
                       className="dropdown-item"
@@ -381,8 +372,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
             </div>
             {selectedUser && (
               <div className="selected-user">
-                Selected: {selectedUser.phone_number}{" "}
-                {selectedUser.name && `(${selectedUser.name})`}
+                Selected: {selectedUser.phone_number} {selectedUser.name && `(${selectedUser.name})`}
               </div>
             )}
           </div>
@@ -397,10 +387,8 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
               required
             >
               <option value="">Select Ticket Type</option>
-              {ticketTypes.map((type) => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
+              {ticketTypes.map(type => (
+                <option key={type.value} value={type.value}>{type.label}</option>
               ))}
             </select>
           </div>
@@ -490,14 +478,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
           </div>
 
           <div className="form-group">
-            <label>
-              Total Price:{" "}
-              {selectedRoute && selectedLevel
-                ? selectedRoute.route_prize *
-                  formData.Quantity *
-                  selectedLevel.prize
-                : 0}
-            </label>
+            <label>Total Price: {selectedRoute && selectedLevel ? selectedRoute.route_prize * formData.Quantity * selectedLevel.prize : 0}</label>
             <input
               type="number"
               name="total_prize"
@@ -508,11 +489,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
           </div>
 
           <div className="modal-actions">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={onClose}
-            >
+            <button type="button" className="btn btn-secondary" onClick={onClose}>
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">
@@ -528,7 +505,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0,0,0,0.5);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -594,7 +571,7 @@ function TicketPurchaseModal({ onClose, pay, routes, levels, ticketTypes }) {
             border: 1px solid #ddd;
             border-radius: 4px;
             z-index: 10;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
           }
           .dropdown-item {
             padding: 8px 12px;

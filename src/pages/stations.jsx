@@ -171,7 +171,7 @@ function Home(){
 };
 const getManger = (sub, bid) => {
   const manager = sub.find(s => 
-    s.branch.id === bid && s.employee.position === "Station Manager" && s.is_active === true
+    s.branch.id === bid && s.employee.position === "Station Manager"
   );
   return manager ? `${manager.employee.Fname}  ${manager.employee.Lname}` : "Not Assigned";
 };

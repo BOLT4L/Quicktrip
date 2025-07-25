@@ -10,45 +10,14 @@ function Login() {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const [message, setMessage] = useState({ type: "", text: "" })
-    const [phoneError, setPhoneError] = useState("")
 
-    const validatePhoneNumber = (number) => {
-      const phoneRegex = /^0\d{9}$/;
-      return phoneRegex.test(number);
-    };
-
-    const formatPhoneNumber = (value) => {
-      // If the value doesn't start with 0, add it
-      if (!value.startsWith('0')) {
-        value = '0' + value.replace(/^0/, '');
-      }
-      // Remove any non-digit characters
-      return value.replace(/\D/g, '').slice(0, 10);
-    };
-
-    const handlePhoneChange = (e) => {
-      let formattedNumber = formatPhoneNumber(e.target.value);
-      setPhonenumber(formattedNumber);
-      
-      // Clear error when user is typing
-      if (phoneError) {
-        setPhoneError("");
-      }
-    };
 
     const handleSubmit = async (e) =>{
-      e.preventDefault();
-      
-      // Validate phone number before submission
-      if (!validatePhoneNumber(phone_number)) {
-        setPhoneError("Phone number must start with 0 followed by 9 digits (10 digits total)");
-        return;
-      }
-
       setLoading(true);
+      e.preventDefault();
 
       try {
-          const res = await api.post('/api/token',{ phone_number, password})
+          const res = await api.post('/api/token',{ phone_number,password})
            
           const decoded = jwtDecode(res.data.access)
           const role = decoded.role
@@ -61,11 +30,15 @@ function Login() {
           localStorage.setItem(REFRESH_TOKEN, res.data.refresh);
           console.log(role)
           window.location.href = '/home';
+          
+
       }
       catch (error) {
+        
         setMessage({ 
           type: 'error',
           text: "Wrong credentials",
+         
         });
       }
       finally{
@@ -84,6 +57,8 @@ function Login() {
           <p className="login-subtitle"> Dashboard</p>
         </div>
 
+     
+       
         <form onSubmit={handleSubmit}>
         {message.text && (
             <div className={`alert ${message.type === "success" ? "alert-success" : "alert-error"}`}>
@@ -92,23 +67,22 @@ function Login() {
           )}
 
           <div className="form-group">
-            <label htmlFor="phone_number" className="form-label">
+            <label htmlFor="email" className="form-label">
               Phone number
             </label>
             <div className="input-wrapper">
               <input
-                type="text"
-                id="phone_number"
-                className={`form-control ${phoneError ? 'error' : ''}`}
+                 
+                 type="number"
+                 id="phonenumber"
+                className="form-control"
                 value={phone_number}
-                onChange={handlePhoneChange}
+                onChange={(e) => setPhonenumber(e.target.value)}
                 required
-                placeholder="0"
-                maxLength={10}
+                placeholder="Phone number"
               />
               <span className="input-focus-effect"></span>
             </div>
-            {phoneError && <div className="error-message">{phoneError}</div>}
           </div>
 
           <div className="form-group">
@@ -117,8 +91,10 @@ function Login() {
             </label>
             <div className="input-wrapper">
               <input
+         
                 className="form-control"
                 id="password"
+                
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -132,9 +108,11 @@ function Login() {
             {loading ? "Logging in..." : `Login `}
           </button>
         </form>
+       
 
         <div className="login-footer">
           <p>For Admin and subadmin users only</p>
+          
         </div>
       </div>
 
@@ -380,21 +358,6 @@ function Login() {
           .login-btn {
             padding: 10px;
           }
-        }
-
-        .error-message {
-          color: #ff4d4f;
-          font-size: 14px;
-          margin-top: 5px;
-        }
-
-        .form-control.error {
-          border-color: #ff4d4f;
-        }
-
-        input[type="text"]#phone_number {
-          font-family: monospace;
-          letter-spacing: 1px;
         }
       `}</style>
     </div>

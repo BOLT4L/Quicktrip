@@ -1,3 +1,8 @@
+// RouteRegistrationModal.jsx
+// This component renders a modal dialog for registering a new route.
+// It collects route information (name, fare, distance, destinations), validates input, and submits to the backend API.
+// Shows error messages and disables the form while saving.
+
 import { useState, useEffect } from "react";
 import api from "../api";
 
@@ -9,15 +14,16 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
     first_destination: "",
     last_destination: ""
   });
+  const [branch, setBranch] = useState([]); // List of available branches
+  const [errors, setErrors] = useState({}); // Form validation errors
+  const [isSubmitting, setIsSubmitting] = useState(false); // Submission state
 
-  const [branch, setBranch] = useState([]);
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  // Fetch branch list on mount
   useEffect(() => {
     getBranch();
   }, []);
 
+  // Fetch branches from API
   const getBranch = () => {
     api
       .get('api/branch/')
@@ -36,59 +42,52 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
       .catch((err) => console.log(err));
   };
 
+  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
-    
     // Clear error when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
 
+  // Validate form fields
   const validateForm = () => {
     const newErrors = {};
-    
     if (!formData.name.trim()) {
       newErrors.name = "Route name is required";
     }
-    
     if (!formData.prize.trim()) {
       newErrors.prize = "Fare is required";
     } else if (isNaN(formData.prize) || Number(formData.prize) <= 0) {
       newErrors.prize = "Fare must be a positive number";
     }
-    
     if (!formData.distance.trim()) {
       newErrors.distance = "Distance is required";
     } else if (isNaN(formData.distance) || Number(formData.distance) <= 0) {
       newErrors.distance = "Distance must be a positive number";
     }
-    
     if (!formData.first_destination) {
       newErrors.first_destination = "First destination is required";
     }
-    
     if (!formData.last_destination) {
       newErrors.last_destination = "Last destination is required";
     } else if (formData.first_destination === formData.last_destination) {
       newErrors.last_destination = "Destinations must be different";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
-    
     setIsSubmitting(true);
-    
     try {
       const res = await api.post('api/route/', {
         name: formData.name,
@@ -97,9 +96,8 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
         route_prize: formData.prize,
         distance: formData.distance,
       });
-      
       if (res.status === 201) {
-        onSave(); 
+        onSave(); // Notify parent component about successful save
         onClose();
       }
     } catch (error) {
@@ -122,15 +120,14 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
             &times;
           </button>
         </div>
-
         <div className="modal-body">
+          {/* Show API error if present */}
           {errors.api && (
             <div className="alert alert-danger">{errors.api}</div>
           )}
-          
           <form onSubmit={handleSubmit}>
             <h3 className="section-title">Route Information</h3>
-
+            {/* Route name field */}
             <div className="form-group">
               <label htmlFor="name" className="form-label">
                 Route Name
@@ -147,10 +144,9 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
                 <div className="error-message">{errors.name}</div>
               )}
             </div>
-
             <h3 className="section-title">Route Details</h3>
-
             <div className="form-row">
+              {/* Fare field */}
               <div className="form-group">
                 <label htmlFor="prize" className="form-label">
                   Fare
@@ -169,7 +165,7 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
                   <div className="error-message">{errors.prize}</div>
                 )}
               </div>
-
+              {/* Distance field */}
               <div className="form-group">
                 <label htmlFor="distance" className="form-label">
                   Distance (km)
@@ -189,8 +185,8 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
                 )}
               </div>
             </div>
-
             <div className="form-row">
+              {/* First destination dropdown */}
               <div className="form-group">
                 <label htmlFor="first_destination" className="form-label">
                   First Destination
@@ -211,7 +207,7 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
                   <div className="error-message">{errors.first_destination}</div>
                 )}
               </div>
-
+              {/* Last destination dropdown */}
               <div className="form-group">
                 <label htmlFor="last_destination" className="form-label">
                   Last Destination
@@ -237,7 +233,6 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
                 )}
               </div>
             </div>
-
             <div className="modal-footer">
               <button 
                 type="button" 
@@ -258,7 +253,7 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           </form>
         </div>
       </div>
-
+      {/* Modal styling for backdrop and modal content */}
       <style jsx>{`
         .modal-backdrop {
           position: fixed;
@@ -272,7 +267,6 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           align-items: center;
           z-index: 1000;
         }
-        
         .modal {
           background: white;
           border-radius: 8px;
@@ -282,7 +276,6 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           overflow-y: auto;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        
         .modal-header {
           padding: 16px 24px;
           border-bottom: 1px solid #eee;
@@ -290,23 +283,19 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           justify-content: space-between;
           align-items: center;
         }
-        
         .modal-title {
           margin: 0;
           font-size: 1.25rem;
         }
-        
         .modal-close {
           background: none;
           border: none;
           font-size: 1.5rem;
           cursor: pointer;
         }
-        
         .modal-body {
           padding: 24px;
         }
-        
         .section-title {
           font-size: 1.1rem;
           font-weight: 600;
@@ -314,17 +303,14 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           padding-bottom: 5px;
           border-bottom: 1px solid #eee;
         }
-        
         .form-group {
           margin-bottom: 16px;
         }
-        
         .form-label {
           display: block;
           margin-bottom: 8px;
           font-weight: 500;
         }
-        
         .form-control {
           width: 100%;
           padding: 8px 12px;
@@ -332,26 +318,21 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           border-radius: 4px;
           font-size: 14px;
         }
-        
         .form-control.is-invalid {
           border-color: #dc3545;
         }
-        
         .error-message {
           color: #dc3545;
           font-size: 0.875rem;
           margin-top: 4px;
         }
-        
         .form-row {
           display: flex;
           gap: 16px;
         }
-        
         .form-row .form-group {
           flex: 1;
         }
-        
         .modal-footer {
           padding: 16px 24px;
           border-top: 1px solid #eee;
@@ -359,37 +340,31 @@ const RouteRegisterModal = ({ onClose, onSave }) => {
           justify-content: flex-end;
           gap: 8px;
         }
-        
         .btn {
           padding: 8px 16px;
           border-radius: 4px;
           cursor: pointer;
           font-size: 14px;
         }
-        
         .btn-secondary {
           background-color: #6c757d;
           color: white;
           border: none;
         }
-        
         .btn-primary {
           background-color: #007bff;
           color: white;
           border: none;
         }
-        
         .btn:disabled {
           opacity: 0.65;
           cursor: not-allowed;
         }
-        
         .alert {
           padding: 12px;
           margin-bottom: 16px;
           border-radius: 4px;
         }
-        
         .alert-danger {
           background-color: #f8d7da;
           color: #721c24;

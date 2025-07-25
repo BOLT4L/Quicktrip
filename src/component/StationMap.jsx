@@ -1,16 +1,21 @@
+// StationMap.jsx
+// This component displays a Google Map with markers for each station in the provided stations array.
+// Markers are color-coded by status (Active, Maintenance, Inactive) and show an info window with details when clicked.
+// The map fits all stations in view and highlights the selected station. Includes a legend for marker colors.
+
 import { useEffect, useRef, useState } from "react"
 
 const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) => {
-  const mapRef = useRef(null)
-  const [map, setMap] = useState(null)
-  const [markers, setMarkers] = useState([])
-  const [infoWindow, setInfoWindow] = useState(null)
+  const mapRef = useRef(null) // Reference to the map container div
+  const [map, setMap] = useState(null) // Google Map instance
+  const [markers, setMarkers] = useState([]) // Array of marker instances
+  const [infoWindow, setInfoWindow] = useState(null) // InfoWindow instance
 
-  // Initialize the map
+  // Initialize the map and info window on mount
   useEffect(() => {
     if (!window.google || !mapRef.current) return
 
-    // Initialize the map
+    // Create the Google Map
     const googleMap = new window.google.maps.Map(mapRef.current, {
       center: { lat: 0, lng: 0 },
       zoom: zoom,
@@ -35,18 +40,18 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
     setMap(googleMap)
     setInfoWindow(infoWin)
 
-    // Clean up
+    // Cleanup on unmount
     return () => {
       setMap(null)
       setInfoWindow(null)
     }
   }, [])
 
-  // Update markers when stations or selectedStation changes
+  // Update markers whenever stations or selectedStation changes
   useEffect(() => {
     if (!map || !window.google) return
 
-    // Clear existing markers
+    // Remove old markers from the map
     markers.forEach(marker => marker.setMap(null))
     const newMarkers = []
 
@@ -60,7 +65,7 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
         lng: station.location?.longitude
       }
 
-      // Create marker
+      // Create marker for the station
       const marker = new window.google.maps.Marker({
         position,
         map,
@@ -69,7 +74,7 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
         zIndex: station.id === selectedStation?.id ? 1000 : 1
       })
 
-      // Add click listener
+      // Show info window and select station on marker click
       marker.addListener("click", () => {
         onSelectStation(station)
         infoWindow.setContent(`
@@ -85,10 +90,9 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
       bounds.extend(position)
     })
 
-    // Fit bounds if there are stations
+    // Fit map to show all stations
     if (stations.length > 0) {
       map.fitBounds(bounds)
-      
       // If only one station, set a reasonable zoom level
       if (stations.length === 1) {
         setTimeout(() => {
@@ -97,7 +101,7 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
       }
     }
 
-    // Center on selected station if exists
+    // Center and show info window for selected station
     if (selectedStation.location) {
       const selectedMarker = newMarkers.find(m => m.title === selectedStation.name)
       if (selectedMarker) {
@@ -149,8 +153,10 @@ const StationMap = ({ stations, selectedStation, zoom = 12, onSelectStation }) =
 
   return (
     <div className="station-map-container">
+      {/* Map will be rendered inside this div */}
       <div ref={mapRef} className="google-map" />
       
+      {/* Legend for marker colors */}
       <div className="map-legend">
         <div className="legend-item">
           <div className="legend-marker active"></div>

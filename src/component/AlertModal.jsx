@@ -1,7 +1,11 @@
+// AlertModal.jsx
+// This component renders a modal dialog for alerting the user, typically for confirming destructive actions like deletion.
+// It displays a title, message, and Cancel/Delete buttons. The modal is only shown when isOpen is true.
+
 import React from 'react';
 
 const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
-  if (!isOpen) return null;
+  if (!isOpen) return null; // Do not render if not open
 
   return (
     <div className="alert-modal-backdrop">
@@ -13,6 +17,7 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           <p>{message}</p>
         </div>
         <div className="alert-modal-footer">
+          {/* Cancel and Delete buttons */}
           <button className="btn btn-secondary" onClick={onClose}>
             Cancel
           </button>
@@ -21,7 +26,7 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           </button>
         </div>
       </div>
-
+      {/* Modal styling for backdrop and modal content */}
       <style jsx>{`
         .alert-modal-backdrop {
           position: fixed;
@@ -35,7 +40,6 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           align-items: center;
           z-index: 1050;
         }
-
         .alert-modal {
           background: white;
           border-radius: 8px;
@@ -43,27 +47,22 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           max-width: 90%;
           box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-
         .alert-modal-header {
           padding: 1rem;
           border-bottom: 1px solid #dee2e6;
         }
-
         .alert-modal-header h3 {
           margin: 0;
           font-size: 1.25rem;
           color: #dc3545;
         }
-
         .alert-modal-body {
           padding: 1rem;
         }
-
         .alert-modal-body p {
           margin: 0;
           color: #666;
         }
-
         .alert-modal-footer {
           padding: 1rem;
           border-top: 1px solid #dee2e6;
@@ -71,7 +70,6 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           justify-content: flex-end;
           gap: 0.5rem;
         }
-
         .btn {
           padding: 0.5rem 1rem;
           border-radius: 4px;
@@ -79,21 +77,17 @@ const AlertModal = ({ isOpen, onClose, onConfirm, title, message }) => {
           cursor: pointer;
           font-size: 0.875rem;
         }
-
         .btn-secondary {
           background-color: #6c757d;
           color: white;
         }
-
         .btn-secondary:hover {
           background-color: #5a6268;
         }
-
         .btn-danger {
           background-color: #dc3545;
           color: white;
         }
-
         .btn-danger:hover {
           background-color: #c82333;
         }
